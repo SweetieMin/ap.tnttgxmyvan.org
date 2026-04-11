@@ -155,7 +155,7 @@
                         </flux:badge>
                     </div>
 
-                    <div class="max-h-[24rem] overflow-y-auto p-4">
+                    <div class="max-h-96 overflow-y-auto p-4">
                         @if ($this->availableTeachers->isNotEmpty())
                             <flux:checkbox.group wire:model="teacher_ids" variant="cards">
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -195,7 +195,7 @@
                             </flux:checkbox.group>
                         @else
                             <div
-                                class="flex min-h-[12rem] items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                                class="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
                                 <div class="text-center">
                                     <div class="font-medium text-zinc-900 dark:text-white">
                                         {{ __('Không tìm thấy giáo viên phù hợp') }}
@@ -304,7 +304,7 @@
                         </flux:badge>
                     </div>
 
-                    <div class="max-h-[26rem] overflow-y-auto p-4">
+                    <div class="max-h-104 overflow-y-auto p-4">
                         @if ($this->availableYouths->isNotEmpty())
                             <flux:checkbox.group wire:model="youth_ids" variant="cards">
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -354,7 +354,7 @@
                             </flux:checkbox.group>
                         @else
                             <div
-                                class="flex min-h-[12rem] items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
+                                class="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700">
                                 <div class="text-center">
                                     <div class="font-medium text-zinc-900 dark:text-white">
                                         {{ __('Không tìm thấy thiếu nhi phù hợp') }}
