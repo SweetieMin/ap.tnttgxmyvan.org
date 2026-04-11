@@ -111,7 +111,7 @@ class ScheduleList extends LivewireCalendar
 
     public function onDayClick($year, $month, $day)
     {
-        $this->dispatch('create-schedule');
+        $this->dispatch('create-schedule',  Carbon::createFromDate($year, $month, $day)->format('Y-m-d'));
     }
 
     public function onEventClick($eventId)

@@ -29,6 +29,10 @@ class Action extends Component
 
     public ?string $end_time = null;
 
+    public ?string $date_end_spirit = null;
+
+    public ?string $date_end_practice_theory = null;
+
     public string $type = Schedule::TYPE_STUDY;
 
     public string $status = 'pending';
@@ -43,25 +47,36 @@ class Action extends Component
     }
 
     #[On('create-schedule')]
-    public function openCreateModal(): void
+    public function openCreateModal($date = null): void
     {
-        // $this->authorize('management.schedule.create');
+
+        $this->authorize('management.schedule.create');
 
         $this->editingScheduleId = null;
         $this->resetForm();
+
+        $date = filled($date) ? Carbon::parse($date) : null;
+
+        $this->date = $date?->format('Y-m-d');
+        $this->date_end_spirit = $date?->copy()->addDay()?->format('Y-m-d');
+        $this->date_end_practice_theory = $date?->copy()->addDays(7)?->format('Y-m-d');
+
         $this->showFormModal = true;
     }
 
     #[On('edit-schedule')]
     public function openEditModal($eventId): void
     {
-        // $this->authorize('management.schedule.update');
+        $this->authorize('management.schedule.update');
 
         $schedule = Schedule::query()->with('classroomSubject')->findOrFail($eventId);
 
         $this->editingScheduleId = $schedule->id;
         $this->classroom_subject_id = $schedule->classroom_subject_id;
         $this->date = $schedule->date ? $schedule->date->format('Y-m-d') : null;
+        $this->date_end_spirit = $schedule->date_end_spirit ? $schedule->date_end_spirit->format('Y-m-d') : null;
+        $this->date_end_practice_theory = $schedule->date_end_practice_theory ? $schedule->date_end_practice_theory->format('Y-m-d') : null;
+
         $this->start_time = $schedule->start_time ? substr($schedule->start_time, 0, 5) : null;
         $this->end_time = $schedule->end_time ? substr($schedule->end_time, 0, 5) : null;
         $this->type = $schedule->type;
@@ -183,6 +198,8 @@ class Action extends Component
         return [
             'classroom_subject_id' => ['required', 'exists:classroom_subject,id'],
             'date' => ['required', 'date'],
+            'date_end_spirit' => ['nullable', 'date'],
+            'date_end_practice_theory' => ['nullable', 'date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'type' => ['required', 'in:study,exam,camp,reminder'],
@@ -194,6 +211,8 @@ class Action extends Component
     {
         $this->classroom_subject_id = null;
         $this->date = null;
+        $this->date_end_spirit = null;
+        $this->date_end_practice_theory = null;
         $this->start_time = null;
         $this->end_time = null;
         $this->type = Schedule::TYPE_STUDY;

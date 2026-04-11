@@ -19,19 +19,36 @@ class RoleAndPermissionSeeder extends Seeder
         $permissionsByRole = [
             'admin' => [
                 'access dashboard',
-                'view settings',
-                'manage users',
+
                 'manage roles',
                 'manage permissions',
-                'manage bible verses',
+
                 'personnel.teacher.view',
                 'personnel.teacher.create',
                 'personnel.teacher.update',
                 'personnel.teacher.delete',
+
                 'personnel.youth.view',
                 'personnel.youth.create',
                 'personnel.youth.update',
                 'personnel.youth.delete',
+
+                'management.schedule.view',
+                'management.schedule.create',
+                'management.schedule.update',
+                'management.schedule.delete',
+
+                'management.subject.view',
+                'management.subject.create',
+                'management.subject.update',
+                'management.subject.delete',
+
+                'management.classroom.view',
+                'management.classroom.create',
+                'management.classroom.update',
+                'management.classroom.delete',
+
+
             ],
             'giáo viên' => [
                 'access dashboard',

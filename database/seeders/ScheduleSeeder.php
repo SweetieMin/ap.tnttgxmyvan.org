@@ -71,14 +71,6 @@ class ScheduleSeeder extends Seeder
 
     public function run(): void
     {
-        $teacher = User::query()
-            ->whereHas('roles', fn($query) => $query->where('name', 'giáo viên'))
-            ->first()
-            ?? User::query()->first();
-
-        if ($teacher === null) {
-            return;
-        }
 
         $classroom = Classroom::query()->firstOrCreate(
             ['code' => 'MV-CB26'],
@@ -108,10 +100,6 @@ class ScheduleSeeder extends Seeder
                     'status' => 'active',
                 ],
             );
-
-            $assignment->teachers()->syncWithoutDetaching([$teacher->id]);
-
-
 
             $date = Carbon::parse($attributes['date']);
 

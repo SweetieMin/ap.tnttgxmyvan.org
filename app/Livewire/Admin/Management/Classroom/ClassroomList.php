@@ -6,6 +6,7 @@ use App\Models\Classroom;
 use App\Models\ClassroomSubject;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -13,6 +14,9 @@ use Livewire\Component;
 
 class ClassroomList extends Component
 {
+
+    use AuthorizesRequests;
+
     public ?int $selectedClassroomId = null;
 
     public string $sortBy = 'id';
