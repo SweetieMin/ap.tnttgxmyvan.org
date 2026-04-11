@@ -82,6 +82,67 @@ test('attendance page stores spirit score from selected attendance status', func
     ]);
 });
 
+test('attendance roster shows total score in the same request after saveRecord hydrates the roster', function () {
+    Carbon::setTestNow('2026-04-11 19:05:00');
+
+    $admin = User::factory()->create();
+    $youth = User::factory()->create();
+
+    $assignment = ClassroomSubject::factory()->create();
+    $assignment->classroom->youths()->attach($youth);
+    $assignment->teachers()->attach($admin);
+
+    $schedule = Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-11',
+        'start_time' => '19:00',
+        'end_time' => '20:30',
+        'have_record' => true,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(AttendanceIndex::class)
+        ->set('selectedScheduleId', $schedule->id)
+        ->set('attendanceStatuses.'.$youth->id, Attendance::STATUS_ON_TIME)
+        ->set('theoryScores.'.$youth->id, '9')
+        ->set('practiceScores.'.$youth->id, '9')
+        ->call('saveRecord', $youth->id)
+        ->assertSee('9.50');
+});
+
+test('attendance page accepts comma decimals for theory and practice scores', function () {
+    Carbon::setTestNow('2026-04-11 19:05:00');
+
+    $admin = User::factory()->create();
+    $youth = User::factory()->create();
+
+    $assignment = ClassroomSubject::factory()->create();
+    $assignment->classroom->youths()->attach($youth);
+    $assignment->teachers()->attach($admin);
+
+    $schedule = Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-11',
+        'start_time' => '19:00',
+        'end_time' => '20:30',
+        'have_record' => true,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test(AttendanceIndex::class)
+        ->set('selectedScheduleId', $schedule->id)
+        ->set('attendanceStatuses.'.$youth->id, Attendance::STATUS_ON_TIME)
+        ->set('theoryScores.'.$youth->id, '8,50')
+        ->set('practiceScores.'.$youth->id, '9,00')
+        ->call('saveRecord', $youth->id);
+
+    $this->assertDatabaseHas('scores', [
+        'schedule_id' => $schedule->id,
+        'user_id' => $youth->id,
+        'spirit_score' => 10.00,
+        'theory_score' => 8.50,
+        'practice_score' => 9.00,
+    ]);
+});
+
 test('my classes filter only shows schedules assigned to the authenticated teacher', function () {
     $teacher = User::factory()->create();
 

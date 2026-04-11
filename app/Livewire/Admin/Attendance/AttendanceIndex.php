@@ -150,8 +150,8 @@ class AttendanceIndex extends Component
                     'attendance' => $attendance,
                     'score' => $score,
                     'spirit_score' => $this->spiritScoreForStatus($attendanceStatus),
-                    'preview_final_score' => $this->previewFinalScore($youth->id),
-                    'preview_result_status' => $this->previewResultStatus($youth->id),
+                    'preview_final_score' => $this->previewFinalScore($youth->id, $attendanceStatus),
+                    'preview_result_status' => $this->previewResultStatus($youth->id, $attendanceStatus),
                 ];
             })
             ?? collect();
@@ -381,6 +381,10 @@ class AttendanceIndex extends Component
             $this->practiceScores[$user->id] = $score?->practice_score !== null ? (string) $score->practice_score : null;
         }
 
+        // rosterRows is #[Computed] and caches per request; it was first evaluated while theory/practice
+        // arrays were still empty above, so clear cache so render sees previews from the hydrated state.
+        unset($this->rosterRows);
+
         $this->isHydratingRoster = false;
     }
 
@@ -432,48 +436,49 @@ class AttendanceIndex extends Component
         return $attendance->suggestedSpiritScore();
     }
 
-    protected function previewFinalScore(int $userId): ?float
+    protected function previewFinalScore(int $userId, ?string $attendanceStatus): ?float
     {
-        $spirit = $this->spiritScoreForUser($userId);
+        $spirit = $this->spiritScoreForStatus($attendanceStatus);
         $theory = $this->normalizeOptionalFloat($this->theoryScores[$userId] ?? null);
         $practice = $this->normalizeOptionalFloat($this->practiceScores[$userId] ?? null);
 
-        if ($spirit === null || $theory === null || $practice === null) {
-            return null;
-        }
-
-        return round(((($theory + $practice) / 2) + $spirit) / 2, 2);
+        return Score::computeFinalScore($spirit, $theory, $practice);
     }
 
-    protected function previewResultStatus(int $userId): string
+    protected function previewResultStatus(int $userId, ?string $attendanceStatus): string
     {
-        $finalScore = $this->previewFinalScore($userId);
-
-        if ($finalScore === null) {
-            return Score::RESULT_PENDING;
-        }
-
-        return $finalScore > Score::PASSING_SCORE
-            ? Score::RESULT_PASSED
-            : Score::RESULT_FAILED;
+        return Score::resultStatusForFinalScore($this->previewFinalScore($userId, $attendanceStatus));
     }
 
     protected function normalizeOptionalNumeric(mixed $value): ?string
     {
-        if ($value === null || $value === '') {
+        return $this->normalizeDecimalString($value);
+    }
+
+    protected function normalizeDecimalString(mixed $value): ?string
+    {
+        if ($value === null) {
             return null;
         }
 
-        return (string) $value;
+        $trimmed = trim((string) $value);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        return str_replace(',', '.', $trimmed);
     }
 
     protected function normalizeOptionalFloat(mixed $value): ?float
     {
-        if ($value === null || $value === '') {
+        $normalized = $this->normalizeDecimalString($value);
+
+        if ($normalized === null || ! is_numeric($normalized)) {
             return null;
         }
 
-        return (float) $value;
+        return (float) $normalized;
     }
 
     /**

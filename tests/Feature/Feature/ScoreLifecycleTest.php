@@ -46,6 +46,32 @@ test('it calculates the final score, stores result status, and writes audit hist
     ]);
 });
 
+test('it marks exactly the passing threshold as passed', function () {
+    Carbon::setTestNow('2026-04-11 18:00:00');
+
+    $teacher = User::factory()->create();
+    $youth = User::factory()->create();
+    $schedule = Schedule::factory()->for(ClassroomSubject::factory())->create([
+        'have_record' => true,
+        'start_time' => '19:00',
+        'date_end_spirit' => Carbon::now()->toDateString(),
+        'date_end_practice_theory' => Carbon::now()->toDateString(),
+    ]);
+
+    $this->actingAs($teacher);
+
+    $score = Score::query()->create([
+        'schedule_id' => $schedule->id,
+        'user_id' => $youth->id,
+        'spirit_score' => 7,
+        'theory_score' => 8,
+        'practice_score' => 8,
+    ]);
+
+    expect((float) $score->fresh()->final_score)->toBe(7.5)
+        ->and($score->fresh()->result_status)->toBe(Score::RESULT_PASSED);
+});
+
 test('it keeps pending status when one of the score columns is missing', function () {
     Carbon::setTestNow('2026-04-11 18:00:00');
 

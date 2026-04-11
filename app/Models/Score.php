@@ -104,29 +104,47 @@ class Score extends Model
             && $this->practice_score !== null;
     }
 
+    /**
+     * Điểm tổng buổi: trung bình của (trung bình LT + TH) và điểm tinh thần — tức TT 50%, LT 25%, TH 25%.
+     */
+    public static function computeFinalScore(?float $spirit, ?float $theory, ?float $practice): ?float
+    {
+        if ($spirit === null || $theory === null || $practice === null) {
+            return null;
+        }
+
+        $theoryAndPracticeAverage = ($theory + $practice) / 2;
+
+        return round((($theoryAndPracticeAverage + $spirit) / 2), 2);
+    }
+
     public function calculateFinalScore(): ?float
     {
         if (! $this->hasCompleteScores()) {
             return null;
         }
 
-        $theoryAndPracticeAverage = (((float) $this->theory_score) + ((float) $this->practice_score)) / 2;
-        $finalScore = ($theoryAndPracticeAverage + ((float) $this->spirit_score)) / 2;
-
-        return round($finalScore, 2);
+        return self::computeFinalScore(
+            (float) $this->spirit_score,
+            (float) $this->theory_score,
+            (float) $this->practice_score,
+        );
     }
 
-    public function determineResultStatus(): string
+    public static function resultStatusForFinalScore(?float $finalScore): string
     {
-        $finalScore = $this->calculateFinalScore();
-
         if ($finalScore === null) {
             return self::RESULT_PENDING;
         }
 
-        return $finalScore > self::PASSING_SCORE
+        return $finalScore >= self::PASSING_SCORE
             ? self::RESULT_PASSED
             : self::RESULT_FAILED;
+    }
+
+    public function determineResultStatus(): string
+    {
+        return self::resultStatusForFinalScore($this->calculateFinalScore());
     }
 
     public function syncComputedFields(): void
