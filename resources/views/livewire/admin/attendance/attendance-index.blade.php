@@ -1,9 +1,9 @@
 <div>
-    <section class="w-full space-y-2">
-        <div class="grid gap-2 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
-            <div class="space-y-2">
-                <flux:card class="space-y-4 rounded-3xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
-                    <div class="grid gap-4 md:grid-cols-3">
+    <section class="w-full space-y-3">
+        <div class="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
+            <div class="space-y-3">
+                <flux:card class="space-y-4 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900 sm:p-4 lg:rounded-3xl lg:p-5">
+                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         <flux:field>
                             <flux:date-picker wire:model.live="selectedDate" :label="__('Lọc theo ngày học')" locale="vi-VN" />
                         </flux:field>
@@ -16,9 +16,13 @@
                             </flux:select>
                         </flux:field>
 
-                        <flux:field>
+                        <flux:field class="sm:col-span-2 xl:col-span-1">
                             <flux:label>{{ __('Buổi học cần nhập') }}</flux:label>
-                            <flux:select variant="combobox" wire:model.live="selectedScheduleId" wire:key="attendance-schedule-options-{{ $scheduleScope }}-{{ $selectedDate ?? 'all' }}">
+                            <flux:select
+                                variant="combobox"
+                                wire:model.live="selectedScheduleId"
+                                wire:key="attendance-schedule-options-{{ $scheduleScope }}-{{ $selectedDate ?? 'all' }}"
+                            >
                                 @forelse ($this->scheduleOptions as $schedule)
                                     <flux:select.option :value="$schedule->id" wire:key="attendance-schedule-{{ $schedule->id }}">
                                         {{ $schedule->date?->format('d/m/Y') }} · {{ substr((string) $schedule->start_time, 0, 5) }} · {{ $schedule->classroomName() }} · {{ $schedule->subjectName() }}
@@ -32,25 +36,25 @@
                 </flux:card>
 
                 @if ($this->selectedSchedule)
-                    <flux:card class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
-                        <div class="grid gap-4 lg:grid-cols-4">
+                    <flux:card class="rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900 sm:p-4 lg:rounded-3xl lg:p-5">
+                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                             <div class="space-y-1">
-                                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Lớp học') }}</flux:text>
+                                <flux:text class="text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Lớp học') }}</flux:text>
                                 <flux:heading size="sm">{{ $this->selectedSchedule->classroomName() }}</flux:heading>
                             </div>
 
                             <div class="space-y-1">
-                                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Môn học') }}</flux:text>
+                                <flux:text class="text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Môn học') }}</flux:text>
                                 <flux:heading size="sm">{{ $this->selectedSchedule->subjectName() }}</flux:heading>
                             </div>
 
                             <div class="space-y-1">
-                                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Giáo viên') }}</flux:text>
+                                <flux:text class="text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Giáo viên') }}</flux:text>
                                 <flux:heading size="sm">{{ $this->selectedSchedule->teacherName() ?: '—' }}</flux:heading>
                             </div>
 
                             <div class="space-y-1">
-                                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">{{ __('Khung giờ') }}</flux:text>
+                                <flux:text class="text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Khung giờ') }}</flux:text>
                                 <flux:heading size="sm">
                                     {{ $this->selectedSchedule->date?->format('d/m/Y') }} · {{ substr((string) $this->selectedSchedule->start_time, 0, 5) }} - {{ substr((string) $this->selectedSchedule->end_time, 0, 5) }}
                                 </flux:heading>
@@ -67,123 +71,265 @@
                             </span>
 
                             <x-auth-session-status class="text-center" :status="$statusMessage ?? session('status')" />
-
                         </div>
                     </flux:card>
 
                     @php($canManageSelectedSchedule = $this->canManageSelectedSchedule)
-                    <flux:card>
-                        <flux:table container:class="max-h-[calc(100vh-390px)]">
-                            <flux:table.columns sticky class="bg-white dark:bg-zinc-900">
-                                <flux:table.column sticky class="bg-white dark:bg-zinc-900">{{ __('Thiếu nhi') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('Điểm danh') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('TT') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('LT') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('TH') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('Tổng') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('Kết quả') }}</flux:table.column>
-                                <flux:table.column align="center">{{ __('Ghi chú') }}</flux:table.column>
-                               
-                            </flux:table.columns>
 
-                            <flux:table.rows>
-                                @forelse ($this->rosterRows as $row)
-                                    @php($user = $row['user'])
-                                    <flux:table.row :key="'attendance-row-'.$user->id">
-                                        <flux:table.cell variant="strong" sticky class="bg-white dark:bg-zinc-900">
-                                            <div class="space-y-1">
-                                                <div>{{ $user->holy_name ?: '—' }} {{ $user->name }}</div>
-                                                <div class="text-xs text-zinc-500">{{ $user->username }}</div>
-                                            </div>
-                                        </flux:table.cell>
+                    {{-- Mobile cards --}}
+                    <div class="space-y-3 lg:hidden">
+                        @forelse ($this->rosterRows as $row)
+                            @php($user = $row['user'])
 
-                                        <flux:table.cell>
-                                            <div class="space-y-2 min-w-48">
-                                                @if ($canManageSelectedSchedule)
-                                                    <flux:select variant="combobox" wire:model.live="attendanceStatuses.{{ $user->id }}" :disabled="$this->selectedSchedule->isSpiritScoreLocked()">
-                                                        <flux:select.option value="">{{ __('Chọn trạng thái') }}</flux:select.option>
-                                                        @foreach ($this->attendanceStatusOptions() as $value => $label)
-                                                            <flux:select.option :value="$value" wire:key="attendance-status-{{ $user->id }}-{{ $value }}">
-                                                                {{ $label }}
-                                                            </flux:select.option>
-                                                        @endforeach
-                                                    </flux:select>
-                                                @else
-                                                    <span class="inline-flex min-w-32 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                                                        {{ $this->attendanceStatusOptions()[$this->attendanceStatuses[$user->id] ?? ''] ?? $this->attendanceAccessMessage() }}
+                            <flux:card class="rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                            {{ $user->holy_name ?: '—' }} {{ $user->name }}
+                                        </div>
+                                        <div class="text-xs text-zinc-500">
+                                            {{ $user->username }}
+                                        </div>
+                                    </div>
+
+                                    <span class="inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[11px] font-medium
+                                        {{ $row['preview_result_status'] === 'passed' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300' : '' }}
+                                        {{ $row['preview_result_status'] === 'failed' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300' : '' }}
+                                        {{ $row['preview_result_status'] === 'pending' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300' : '' }}">
+                                        {{ $row['preview_result_status'] === 'passed' ? __('Đạt') : ($row['preview_result_status'] === 'failed' ? __('Chưa đạt') : __('Chờ đủ điểm')) }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-3">
+                                    <div class="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Điểm danh') }}</div>
+                                    @if ($canManageSelectedSchedule)
+                                        <flux:select
+                                            variant="combobox"
+                                            wire:model.live="attendanceStatuses.{{ $user->id }}"
+                                            :disabled="$this->selectedSchedule->isSpiritScoreLocked()"
+                                        >
+                                            <flux:select.option value="">{{ __('Chọn trạng thái') }}</flux:select.option>
+                                            @foreach ($this->attendanceStatusOptions() as $value => $label)
+                                                <flux:select.option :value="$value" wire:key="attendance-status-mobile-{{ $user->id }}-{{ $value }}">
+                                                    {{ $label }}
+                                                </flux:select.option>
+                                            @endforeach
+                                        </flux:select>
+                                    @else
+                                        <span class="inline-flex w-full items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                                            {{ $this->attendanceStatusOptions()[$this->attendanceStatuses[$user->id] ?? ''] ?? $this->attendanceAccessMessage() }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                
+
+                                <div class="mt-3 grid grid-cols-2 gap-3">
+                                    
+                                    <div>
+                                        <div class="text-[11px] uppercase tracking-wide text-zinc-500">{{ __('TT') }}</div>
+                                        <div class="mt-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                            {{ $row['spirit_score'] !== null ? number_format($row['spirit_score'], 2) : '—' }}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Tổng') }}</div>
+                                        <div class="mt-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                            {{ $row['preview_final_score'] !== null ? number_format($row['preview_final_score'], 2) : '—' }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 space-y-3">
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div class="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">{{ __('LT') }}</div>
+                                            <flux:input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="10"
+                                                wire:model.live.debounce.400ms="theoryScores.{{ $user->id }}"
+                                                :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()"
+                                            />
+                                            @error("theoryScores.{$user->id}")
+                                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div>
+                                            <div class="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">{{ __('TH') }}</div>
+                                            <flux:input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="10"
+                                                wire:model.live.debounce.400ms="practiceScores.{{ $user->id }}"
+                                                :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()"
+                                            />
+                                            @error("practiceScores.{$user->id}")
+                                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="mb-1 text-[11px] uppercase tracking-wide text-zinc-500">{{ __('Ghi chú') }}</div>
+                                        <flux:input
+                                            wire:model.live.debounce.400ms="attendanceNotes.{{ $user->id }}"
+                                            :disabled="! $canManageSelectedSchedule"
+                                        />
+                                    </div>
+                                </div>
+                            </flux:card>
+                        @empty
+                            <flux:card class="rounded-2xl border border-dashed border-zinc-300 bg-white p-6 text-center shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+                                <div class="text-sm text-zinc-500">
+                                    {{ __('Lớp của buổi học này chưa có thiếu nhi nào để điểm danh.') }}
+                                </div>
+                            </flux:card>
+                        @endforelse
+                    </div>
+
+                    {{-- Desktop table --}}
+                    <div class="hidden lg:block">
+                        <flux:card class="rounded-3xl bg-white dark:bg-zinc-900">
+          
+                                <flux:table container:class="max-h-[calc(100vh-390px)] min-w-[980px]">
+                                    <flux:table.columns sticky class="bg-white dark:bg-zinc-900">
+                                        <flux:table.column sticky class="bg-white dark:bg-zinc-900">{{ __('Thiếu nhi') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('Điểm danh') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('TT') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('LT') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('TH') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('Tổng') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('Kết quả') }}</flux:table.column>
+                                        <flux:table.column align="center">{{ __('Ghi chú') }}</flux:table.column>
+                                    </flux:table.columns>
+
+                                    <flux:table.rows>
+                                        @forelse ($this->rosterRows as $row)
+                                            @php($user = $row['user'])
+
+                                            <flux:table.row :key="'attendance-row-'.$user->id">
+                                                <flux:table.cell variant="strong" sticky class="bg-white dark:bg-zinc-900">
+                                                    <div class="space-y-1">
+                                                        <div>{{ $user->holy_name ?: '—' }} {{ $user->name }}</div>
+                                                        <div class="text-xs text-zinc-500">{{ $user->username }}</div>
+                                                    </div>
+                                                </flux:table.cell>
+
+                                                <flux:table.cell>
+                                                    <div class="min-w-48 space-y-2">
+                                                        @if ($canManageSelectedSchedule)
+                                                            <flux:select
+                                                                variant="combobox"
+                                                                wire:model.live="attendanceStatuses.{{ $user->id }}"
+                                                                :disabled="$this->selectedSchedule->isSpiritScoreLocked()"
+                                                            >
+                                                                <flux:select.option value="">{{ __('Chọn trạng thái') }}</flux:select.option>
+                                                                @foreach ($this->attendanceStatusOptions() as $value => $label)
+                                                                    <flux:select.option :value="$value" wire:key="attendance-status-{{ $user->id }}-{{ $value }}">
+                                                                        {{ $label }}
+                                                                    </flux:select.option>
+                                                                @endforeach
+                                                            </flux:select>
+                                                        @else
+                                                            <span class="inline-flex min-w-32 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                                                                {{ $this->attendanceStatusOptions()[$this->attendanceStatuses[$user->id] ?? ''] ?? $this->attendanceAccessMessage() }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </flux:table.cell>
+
+                                                <flux:table.cell align="center">
+                                                    <span class="inline-flex min-w-16 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
+                                                        {{ $row['spirit_score'] !== null ? number_format($row['spirit_score'], 2) : '—' }}
                                                     </span>
-                                                @endif
-                                            </div>
-                                        </flux:table.cell>
+                                                </flux:table.cell>
 
-                                        <flux:table.cell align="center">
-                                            <span class="inline-flex min-w-16 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-                                                {{ $row['spirit_score'] !== null ? number_format($row['spirit_score'], 2) : '—' }}
-                                            </span>
-                                        </flux:table.cell>
+                                                <flux:table.cell align="center">
+                                                    <div class="min-w-24">
+                                                        <flux:input
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0"
+                                                            max="10"
+                                                            wire:model.live.debounce.400ms="theoryScores.{{ $user->id }}"
+                                                            :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()"
+                                                        />
+                                                        @error("theoryScores.{$user->id}")
+                                                            <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </flux:table.cell>
 
-                                        <flux:table.cell align="center">
-                                            <div class="min-w-24">
-                                                <flux:input type="number" step="0.01" min="0" max="10" wire:model.live.debounce.400ms="theoryScores.{{ $user->id }}" :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()" />
-                                                @error("theoryScores.{$user->id}")
-                                                    <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </flux:table.cell>
+                                                <flux:table.cell align="center">
+                                                    <div class="min-w-24">
+                                                        <flux:input
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0"
+                                                            max="10"
+                                                            wire:model.live.debounce.400ms="practiceScores.{{ $user->id }}"
+                                                            :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()"
+                                                        />
+                                                        @error("practiceScores.{$user->id}")
+                                                            <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </flux:table.cell>
 
-                                        <flux:table.cell align="center">
-                                            <div class="min-w-24">
-                                                <flux:input type="number" step="0.01" min="0" max="10" wire:model.live.debounce.400ms="practiceScores.{{ $user->id }}" :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()" />
-                                                @error("practiceScores.{$user->id}")
-                                                    <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </flux:table.cell>
+                                                <flux:table.cell align="center">
+                                                    <div class="min-w-20 text-sm font-semibold text-zinc-700 dark:text-zinc-100">
+                                                        {{ $row['preview_final_score'] !== null ? number_format($row['preview_final_score'], 2) : '—' }}
+                                                    </div>
+                                                </flux:table.cell>
 
-                                        <flux:table.cell align="center">
-                                            <div class="min-w-20 text-sm font-semibold text-zinc-700 dark:text-zinc-100">
-                                                {{ $row['preview_final_score'] !== null ? number_format($row['preview_final_score'], 2) : '—' }}
-                                            </div>
-                                        </flux:table.cell>
+                                                <flux:table.cell>
+                                                    <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium
+                                                        {{ $row['preview_result_status'] === 'passed' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300' : '' }}
+                                                        {{ $row['preview_result_status'] === 'failed' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300' : '' }}
+                                                        {{ $row['preview_result_status'] === 'pending' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300' : '' }}">
+                                                        {{ $row['preview_result_status'] === 'passed' ? __('Đạt') : ($row['preview_result_status'] === 'failed' ? __('Chưa đạt') : __('Chờ đủ điểm')) }}
+                                                    </span>
+                                                </flux:table.cell>
 
-                                        <flux:table.cell>
-                                            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium
-                                                {{ $row['preview_result_status'] === 'passed' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300' : '' }}
-                                                {{ $row['preview_result_status'] === 'failed' ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300' : '' }}
-                                                {{ $row['preview_result_status'] === 'pending' ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300' : '' }}">
-                                                {{ $row['preview_result_status'] === 'passed' ? __('Đạt') : ($row['preview_result_status'] === 'failed' ? __('Chưa đạt') : __('Chờ đủ điểm')) }}
-                                            </span>
-                                        </flux:table.cell>
-
-                                        <flux:table.cell>
-                                            <div class="min-w-56">
-                                                <flux:input wire:model.live.debounce.400ms="attendanceNotes.{{ $user->id }}" :disabled="! $canManageSelectedSchedule" />
-                                            </div>
-                                        </flux:table.cell>
-
-                                    </flux:table.row>
-                                @empty
-                                    <flux:table.row>
-                                        <flux:table.cell colspan="9">
-                                            <div class="py-10 text-center text-sm text-zinc-500">
-                                                {{ __('Lớp của buổi học này chưa có thiếu nhi nào để điểm danh.') }}
-                                            </div>
-                                        </flux:table.cell>
-                                    </flux:table.row>
-                                @endforelse
-                            </flux:table.rows>
-                        </flux:table>
-                    </flux:card>
+                                                <flux:table.cell>
+                                                    <div class="min-w-56">
+                                                        <flux:input
+                                                            wire:model.live.debounce.400ms="attendanceNotes.{{ $user->id }}"
+                                                            :disabled="! $canManageSelectedSchedule"
+                                                        />
+                                                    </div>
+                                                </flux:table.cell>
+                                            </flux:table.row>
+                                        @empty
+                                            <flux:table.row>
+                                                <flux:table.cell colspan="8">
+                                                    <div class="py-10 text-center text-sm text-zinc-500">
+                                                        {{ __('Lớp của buổi học này chưa có thiếu nhi nào để điểm danh.') }}
+                                                    </div>
+                                                </flux:table.cell>
+                                            </flux:table.row>
+                                        @endforelse
+                                    </flux:table.rows>
+                                </flux:table>
+             
+                        </flux:card>
+                    </div>
                 @else
-                    <flux:card class="rounded-3xl border border-dashed border-zinc-300 bg-white p-10 text-center shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:card class="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center shadow-xs dark:border-zinc-700 dark:bg-zinc-900 lg:rounded-3xl lg:p-10">
                         <flux:heading size="sm">{{ __('Chưa có lịch học phù hợp') }}</flux:heading>
                         <flux:text class="mt-2 text-zinc-500">{{ __('Hãy điều chỉnh bộ lọc hoặc tạo lịch học có bật ghi nhận điểm danh.') }}</flux:text>
                     </flux:card>
                 @endif
             </div>
 
-            <div class="space-y-6">
-                <flux:card class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="space-y-3 lg:space-y-6">
+                <flux:card class="rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900 sm:p-4 lg:rounded-3xl lg:p-5">
                     <div class="space-y-3">
                         <flux:heading size="sm">{{ __('Nội quy điểm tinh thần') }}</flux:heading>
                         <div class="space-y-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
@@ -206,7 +352,7 @@
                 </flux:card>
 
                 @if ($this->selectedSchedule)
-                    <flux:card class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+                    <flux:card class="rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900 sm:p-4 lg:rounded-3xl lg:p-5">
                         <div class="space-y-3">
                             <flux:heading size="sm">{{ __('Trạng thái khóa nhập') }}</flux:heading>
 

@@ -1,6 +1,6 @@
 <div>
     <div class="space-y-6">
-        <flux:card>
+        <flux:card class="bg-white dark:bg-zinc-900">
             @if ($this->classrooms->isEmpty())
                 <div class="flex flex-col items-center justify-center gap-2 py-12">
                     <flux:heading size="lg" level="3" class="text-center">{{ __('Chưa có lớp học nào') }}</flux:heading>
@@ -46,7 +46,7 @@
         </flux:card>
 
         @if ($this->selectedClassroom)
-            <flux:card class="space-y-6">
+            <flux:card class="space-y-6 bg-white dark:bg-zinc-900" >
                 <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div class="space-y-2">
                         <flux:heading size="lg">{{ __('Môn học của lớp') }} </flux:heading>
@@ -123,7 +123,7 @@
                 @endif
             </flux:card>
 
-            <flux:card class="space-y-6">
+            <flux:card class="space-y-6 bg-white dark:bg-zinc-900">
                 <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div class="space-y-2">
                         <flux:heading size="lg">{{ __('Thiếu nhi của lớp') }}</flux:heading>

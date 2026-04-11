@@ -1,5 +1,5 @@
 <div>
-<flux:card>
+<flux:card class="bg-white dark:bg-zinc-900">
     @if ($this->youth->isEmpty())
         <div class="flex flex-col items-center justify-center gap-2 py-12">
             <flux:heading size="lg" level="3" class="text-center">{{ __('Chưa có thiếu nhi nào') }}</flux:heading>
