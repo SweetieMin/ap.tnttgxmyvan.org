@@ -7,10 +7,14 @@ use App\Models\Schedule;
 use App\Models\Score;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 
 test('attendance page displays schedule roster in the attendance group', function () {
     $admin = User::factory()->create();
+    Permission::findOrCreate('attendance.view', 'web');
+    $admin->givePermissionTo('attendance.view');
     $youth = User::factory()->create([
         'holy_name' => 'Gioan',
         'name' => 'Thiếu Nhi A',
@@ -122,4 +126,34 @@ test('teacher can only manage attendance after the assigned schedule has started
         ->set('selectedScheduleId', $schedule->id);
 
     expect($component->instance()->canManageSelectedSchedule)->toBeTrue();
+});
+
+test('attendance page only loads classroom once for the selected schedule roster', function () {
+    $teacher = User::factory()->create();
+    $youth = User::factory()->create();
+
+    $assignment = ClassroomSubject::factory()->create();
+    $assignment->teachers()->attach($teacher);
+    $assignment->classroom->youths()->attach($youth);
+
+    $schedule = Schedule::factory()->for($assignment)->create([
+        'date' => now()->toDateString(),
+        'have_record' => true,
+    ]);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    $component = Livewire::actingAs($teacher)
+        ->test(AttendanceIndex::class)
+        ->set('selectedScheduleId', $schedule->id);
+
+    $component->instance()->rosterRows;
+
+    $classroomQueries = collect(DB::getQueryLog())
+        ->pluck('query')
+        ->filter(fn (string $query): bool => str_contains($query, 'from `classrooms` where `classrooms`.`id` in'))
+        ->values();
+
+    expect($classroomQueries->count())->toBeLessThanOrEqual(1);
 });

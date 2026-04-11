@@ -118,7 +118,7 @@ class AttendanceIndex extends Component
             return collect();
         }
 
-        $schedule->load([
+        $schedule->loadMissing([
             'classroomSubject.classroom.youths',
             'classroomSubject.subject',
             'classroomSubject.teachers',
@@ -291,7 +291,6 @@ class AttendanceIndex extends Component
         }
 
         $this->saveRecord((int) $key);
-
 
     }
 

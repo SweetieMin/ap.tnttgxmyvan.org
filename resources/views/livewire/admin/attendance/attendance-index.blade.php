@@ -73,7 +73,7 @@
 
                     @php($canManageSelectedSchedule = $this->canManageSelectedSchedule)
                     <flux:card>
-                        <flux:table container:class="max-h-[calc(100vh-380px)]">
+                        <flux:table container:class="max-h-[calc(100vh-390px)]">
                             <flux:table.columns sticky class="bg-white dark:bg-zinc-900">
                                 <flux:table.column sticky class="bg-white dark:bg-zinc-900">{{ __('Thiếu nhi') }}</flux:table.column>
                                 <flux:table.column align="center">{{ __('Điểm danh') }}</flux:table.column>

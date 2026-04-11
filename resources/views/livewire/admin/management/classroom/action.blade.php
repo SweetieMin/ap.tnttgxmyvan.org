@@ -91,10 +91,10 @@
                 </flux:heading>
 
                 <flux:text>
-                    @if ($this->selectedClassroom)
+                    @if ($selectedClassroomName)
                         {{ __('Phân công môn học cho lớp') }}:
                         <span class="font-medium text-zinc-900 dark:text-white">
-                            {{ $this->selectedClassroom->name }}
+                            {{ $selectedClassroomName }}
                         </span>
                     @endif
                 </flux:text>
@@ -260,10 +260,10 @@
                 <flux:heading size="lg">{{ __('Cập nhật thiếu nhi của lớp') }}</flux:heading>
 
                 <flux:text>
-                    @if ($this->selectedClassroom)
+                    @if ($selectedClassroomName)
                         {{ __('Chọn các thiếu nhi đang học trong lớp') }}:
                         <span class="font-medium text-zinc-900 dark:text-white">
-                            {{ $this->selectedClassroom->name }}
+                            {{ $selectedClassroomName }}
                         </span>
                     @endif
                 </flux:text>

@@ -19,6 +19,8 @@ class Action extends Component
 {
     public ?int $selectedClassroomId = null;
 
+    public ?string $selectedClassroomName = null;
+
     public ?int $editingClassroomId = null;
 
     public ?int $deletingClassroomId = null;
@@ -45,6 +47,10 @@ class Action extends Component
 
     public string $assignment_name = '';
 
+    public bool $isAssignmentModalOpen = false;
+
+    public bool $isYouthModalOpen = false;
+
     /**
      * @var array<int, int|string>
      */
@@ -61,7 +67,7 @@ class Action extends Component
     {
         $this->youth_ids = $this->availableYouths
             ->pluck('id')
-            ->map(fn(int $id): string => (string) $id)
+            ->map(fn (int $id): string => (string) $id)
             ->all();
     }
 
@@ -80,6 +86,7 @@ class Action extends Component
     public function updatedSelectedClassroomId(?int $value): void
     {
         $this->selectedClassroomId = $value;
+        $this->selectedClassroomName = null;
     }
 
     #[On('classroom-selected')]
@@ -89,6 +96,7 @@ class Action extends Component
 
         if ($resolvedId === null || $resolvedId === '') {
             $this->selectedClassroomId = null;
+            $this->selectedClassroomName = null;
 
             return;
         }
@@ -98,6 +106,7 @@ class Action extends Component
         }
 
         $this->selectedClassroomId = (int) $resolvedId;
+        $this->selectedClassroomName = null;
     }
 
     #[On('classroom-data-changed')]
@@ -109,6 +118,7 @@ class Action extends Component
 
         if ($resolvedId === null || $resolvedId === '') {
             $this->selectedClassroomId = null;
+            $this->selectedClassroomName = null;
 
             return;
         }
@@ -118,6 +128,7 @@ class Action extends Component
         }
 
         $this->selectedClassroomId = (int) $resolvedId;
+        $this->selectedClassroomName = null;
     }
 
     #[On('open-create-classroom-modal')]
@@ -145,6 +156,7 @@ class Action extends Component
         $classroom = Classroom::query()->findOrFail($classroomId);
 
         $this->selectedClassroomId = $classroom->id;
+        $this->selectedClassroomName = $classroom->name;
         $this->editingClassroomId = $classroom->id;
         $this->name = $classroom->name;
         $this->code = $classroom->code ?? '';
@@ -177,25 +189,27 @@ class Action extends Component
     #[On('open-create-assignment-modal')]
     public function openCreateAssignmentModal(): void
     {
-        if ($this->selectedClassroom === null) {
+        if ($this->selectedClassroomId === null) {
             Flux::toast(variant: 'warning', text: __('Hãy tạo lớp học trước khi thêm môn học.'));
 
             return;
         }
 
-        if ($this->availableSubjects->isEmpty()) {
+        if (! Subject::query()->exists()) {
             Flux::toast(variant: 'warning', text: __('Hãy tạo môn học trước khi gán vào lớp.'));
 
             return;
         }
 
-        if ($this->availableTeachers->isEmpty()) {
+        if (! User::query()->whereHas('roles', fn ($query) => $query->where('name', 'giáo viên'))->exists()) {
             Flux::toast(variant: 'warning', text: __('Hãy tạo hoặc gán role giáo viên trước khi phân công môn học.'));
 
             return;
         }
 
         $this->editingAssignmentId = null;
+        $this->isAssignmentModalOpen = true;
+        $this->selectedClassroomName = Classroom::query()->whereKey($this->selectedClassroomId)->value('name');
         $this->resetAssignmentForm();
 
         Flux::modal('showAssignmentModal')->show();
@@ -211,15 +225,17 @@ class Action extends Component
         }
 
         $assignment = ClassroomSubject::query()
-            ->with(['subject', 'teachers'])
+            ->with(['classroom:id,name', 'subject', 'teachers'])
             ->findOrFail($assignmentId);
 
         $this->selectedClassroomId = $assignment->classroom_id;
+        $this->selectedClassroomName = $assignment->classroom?->name;
         $this->editingAssignmentId = $assignment->id;
+        $this->isAssignmentModalOpen = true;
         $this->subject_id = $assignment->subject_id;
         $this->teacher_ids = $assignment->teachers
             ->pluck('id')
-            ->map(fn(int $id): string => (string) $id)
+            ->map(fn (int $id): string => (string) $id)
             ->all();
         $this->assignment_status = $assignment->status;
         $this->resetErrorBag();
@@ -250,16 +266,22 @@ class Action extends Component
     #[On('open-youth-modal')]
     public function openYouthModal(): void
     {
-        if ($this->selectedClassroom === null) {
+        $classroomId = $this->selectedClassroomId;
+
+        if ($classroomId === null) {
             Flux::toast(variant: 'warning', text: __('Vui lòng chọn lớp học trước.'));
 
             return;
         }
 
-        $this->youth_ids = $this->selectedClassroom->youths
+        $this->youth_ids = Classroom::query()
+            ->findOrFail($classroomId)
+            ->youths()
             ->pluck('id')
-            ->map(fn(int $id): string => (string) $id)
+            ->map(fn (int $id): string => (string) $id)
             ->all();
+        $this->selectedClassroomName = Classroom::query()->whereKey($classroomId)->value('name');
+        $this->isYouthModalOpen = true;
         $this->resetErrorBag();
         $this->resetValidation();
 
@@ -290,6 +312,7 @@ class Action extends Component
         }
 
         $this->selectedClassroomId = $classroom->id;
+        $this->selectedClassroomName = $classroom->name;
         Flux::modal('showFormModal')->close();
         $this->editingClassroomId = null;
         $this->resetForm();
@@ -311,6 +334,7 @@ class Action extends Component
         Flux::modal('showDeleteModal')->close();
         $this->deletingClassroomId = null;
         $this->selectedClassroomId = $selectedClassroomId;
+        $this->selectedClassroomName = null;
 
         $this->dispatch('classroom-data-changed', selectedClassroomId: $selectedClassroomId);
 
@@ -319,7 +343,7 @@ class Action extends Component
 
     public function saveAssignment(): void
     {
-        $classroomId = $this->selectedClassroom?->id;
+        $classroomId = $this->selectedClassroomId;
 
         if ($classroomId === null) {
             Flux::toast(variant: 'warning', text: __('Vui lòng chọn lớp học trước.'));
@@ -336,14 +360,14 @@ class Action extends Component
         );
 
         $teacherIds = collect($validated['teacher_ids'])
-            ->map(fn(int|string $teacherId): int => (int) $teacherId)
+            ->map(fn (int|string $teacherId): int => (int) $teacherId)
             ->unique()
             ->values()
             ->all();
 
         $teacherCount = User::query()
             ->whereKey($teacherIds)
-            ->whereHas('roles', fn($query) => $query->where('name', 'giáo viên'))
+            ->whereHas('roles', fn ($query) => $query->where('name', 'giáo viên'))
             ->count();
 
         if ($teacherCount !== count($teacherIds)) {
@@ -396,9 +420,9 @@ class Action extends Component
 
     public function saveYouthAssignments(): void
     {
-        $classroom = $this->selectedClassroom;
+        $classroomId = $this->selectedClassroomId;
 
-        if ($classroom === null) {
+        if ($classroomId === null) {
             Flux::toast(variant: 'warning', text: __('Vui lòng chọn lớp học trước.'));
 
             return;
@@ -410,14 +434,14 @@ class Action extends Component
         ]);
 
         $youthIds = collect($validated['youth_ids'] ?? [])
-            ->map(fn(int|string $youthId): int => (int) $youthId)
+            ->map(fn (int|string $youthId): int => (int) $youthId)
             ->unique()
             ->values()
             ->all();
 
         $youthCount = User::query()
             ->whereKey($youthIds)
-            ->whereHas('roles', fn($query) => $query->where('name', 'thiếu nhi'))
+            ->whereHas('roles', fn ($query) => $query->where('name', 'thiếu nhi'))
             ->count();
 
         if ($youthCount !== count($youthIds)) {
@@ -426,6 +450,7 @@ class Action extends Component
             return;
         }
 
+        $classroom = Classroom::query()->findOrFail($classroomId);
         $classroom->youths()->sync($youthIds);
 
         Flux::modal('showYouthModal')->close();
@@ -453,6 +478,7 @@ class Action extends Component
     public function closeAssignmentModal(): void
     {
         Flux::modal('showAssignmentModal')->close();
+        $this->isAssignmentModalOpen = false;
         $this->editingAssignmentId = null;
         $this->resetAssignmentForm();
     }
@@ -468,27 +494,10 @@ class Action extends Component
     public function closeYouthModal(): void
     {
         Flux::modal('showYouthModal')->close();
+        $this->isYouthModalOpen = false;
         $this->youth_ids = [];
         $this->resetErrorBag();
         $this->resetValidation();
-    }
-
-    #[Computed]
-    public function selectedClassroom(): ?Classroom
-    {
-        $query = Classroom::query()
-            ->with('youths')
-            ->orderBy('name');
-
-        if ($this->selectedClassroomId !== null) {
-            $selectedClassroom = (clone $query)->find($this->selectedClassroomId);
-
-            if ($selectedClassroom !== null) {
-                return $selectedClassroom;
-            }
-        }
-
-        return $query->first();
     }
 
     #[Computed]
@@ -535,6 +544,10 @@ class Action extends Component
     #[Computed]
     public function availableSubjects(): Collection
     {
+        if (! $this->isAssignmentModalOpen) {
+            return new Collection;
+        }
+
         return Subject::query()
             ->orderBy('name')
             ->get();
@@ -543,8 +556,12 @@ class Action extends Component
     #[Computed]
     public function availableTeachers(): Collection
     {
+        if (! $this->isAssignmentModalOpen) {
+            return new Collection;
+        }
+
         return User::query()
-            ->whereHas('roles', fn($query) => $query->where('name', 'giáo viên'))
+            ->whereHas('roles', fn ($query) => $query->where('name', 'giáo viên'))
             ->when(filled($this->assignment_name), function ($query) {
                 $search = trim($this->assignment_name);
 
@@ -561,6 +578,10 @@ class Action extends Component
     #[Computed]
     public function availableYouths(): Collection
     {
+        if (! $this->isYouthModalOpen) {
+            return new Collection;
+        }
+
         return User::query()
             ->role('thiếu nhi')
             ->with('classrooms:id,name,code')
@@ -608,7 +629,7 @@ class Action extends Component
                 'required',
                 'exists:subjects,id',
                 Rule::unique('classroom_subject', 'subject_id')->where(
-                    fn($query) => $query->where('classroom_id', $classroomId),
+                    fn ($query) => $query->where('classroom_id', $classroomId),
                 ),
             ],
             'teacher_ids' => ['required', 'array', 'min:1'],
@@ -624,7 +645,7 @@ class Action extends Component
                 'required',
                 'exists:subjects,id',
                 Rule::unique('classroom_subject', 'subject_id')
-                    ->where(fn($query) => $query->where('classroom_id', $classroomId))
+                    ->where(fn ($query) => $query->where('classroom_id', $classroomId))
                     ->ignore($assignmentId),
             ],
             'teacher_ids' => ['required', 'array', 'min:1'],
