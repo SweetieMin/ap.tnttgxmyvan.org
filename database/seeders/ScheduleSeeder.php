@@ -6,7 +6,6 @@ use App\Models\Classroom;
 use App\Models\ClassroomSubject;
 use App\Models\Schedule;
 use App\Models\Subject;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 
