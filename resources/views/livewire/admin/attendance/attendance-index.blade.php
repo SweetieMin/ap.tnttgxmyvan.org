@@ -65,22 +65,25 @@
                             <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium {{ $this->selectedSchedule->areTheoryPracticeScoresLocked() ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300' : 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/40 dark:text-sky-300' }}">
                                 {{ __('Hạn lý thuyết / thực hành: :time', ['time' => $this->selectedSchedule->theoryPracticeScoreDeadlineAt()?->format('d/m/Y H:i') ?? '—']) }}
                             </span>
+
+                            <x-auth-session-status class="text-center" :status="$statusMessage ?? session('status')" />
+
                         </div>
                     </flux:card>
 
                     @php($canManageSelectedSchedule = $this->canManageSelectedSchedule)
-                    <flux:card wire:poll.5s>
+                    <flux:card>
                         <flux:table container:class="max-h-[calc(100vh-380px)]">
                             <flux:table.columns sticky class="bg-white dark:bg-zinc-900">
                                 <flux:table.column sticky class="bg-white dark:bg-zinc-900">{{ __('Thiếu nhi') }}</flux:table.column>
-                                <flux:table.column>{{ __('Điểm danh') }}</flux:table.column>
-                                <flux:table.column>{{ __('TT') }}</flux:table.column>
-                                <flux:table.column>{{ __('LT') }}</flux:table.column>
-                                <flux:table.column>{{ __('TH') }}</flux:table.column>
-                                <flux:table.column>{{ __('Tổng') }}</flux:table.column>
-                                <flux:table.column>{{ __('Kết quả') }}</flux:table.column>
-                                <flux:table.column>{{ __('Ghi chú') }}</flux:table.column>
-                                <flux:table.column align="end">{{ __('Lưu') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('Điểm danh') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('TT') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('LT') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('TH') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('Tổng') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('Kết quả') }}</flux:table.column>
+                                <flux:table.column align="center">{{ __('Ghi chú') }}</flux:table.column>
+                               
                             </flux:table.columns>
 
                             <flux:table.rows>
@@ -113,25 +116,31 @@
                                             </div>
                                         </flux:table.cell>
 
-                                        <flux:table.cell>
+                                        <flux:table.cell align="center">
                                             <span class="inline-flex min-w-16 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
                                                 {{ $row['spirit_score'] !== null ? number_format($row['spirit_score'], 2) : '—' }}
                                             </span>
                                         </flux:table.cell>
 
-                                        <flux:table.cell>
+                                        <flux:table.cell align="center">
                                             <div class="min-w-24">
                                                 <flux:input type="number" step="0.01" min="0" max="10" wire:model.live.debounce.400ms="theoryScores.{{ $user->id }}" :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()" />
+                                                @error("theoryScores.{$user->id}")
+                                                    <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </flux:table.cell>
 
-                                        <flux:table.cell>
+                                        <flux:table.cell align="center">
                                             <div class="min-w-24">
                                                 <flux:input type="number" step="0.01" min="0" max="10" wire:model.live.debounce.400ms="practiceScores.{{ $user->id }}" :disabled="(! $canManageSelectedSchedule) || $this->selectedSchedule->areTheoryPracticeScoresLocked()" />
+                                                @error("practiceScores.{$user->id}")
+                                                    <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </flux:table.cell>
 
-                                        <flux:table.cell>
+                                        <flux:table.cell align="center">
                                             <div class="min-w-20 text-sm font-semibold text-zinc-700 dark:text-zinc-100">
                                                 {{ $row['preview_final_score'] !== null ? number_format($row['preview_final_score'], 2) : '—' }}
                                             </div>
@@ -152,15 +161,6 @@
                                             </div>
                                         </flux:table.cell>
 
-                                        <flux:table.cell align="end">
-                                            @if ($canManageSelectedSchedule)
-                                                <flux:button variant="primary" wire:click="saveRecord({{ $user->id }})" wire:loading.attr="disabled" wire:target="saveRecord({{ $user->id }})">
-                                                    {{ __('Lưu') }}
-                                                </flux:button>
-                                            @else
-                                                <span class="text-sm text-zinc-400 dark:text-zinc-500">—</span>
-                                            @endif
-                                        </flux:table.cell>
                                     </flux:table.row>
                                 @empty
                                     <flux:table.row>

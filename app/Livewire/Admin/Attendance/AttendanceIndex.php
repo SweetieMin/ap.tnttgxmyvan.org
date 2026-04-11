@@ -39,6 +39,10 @@ class AttendanceIndex extends Component
     /** @var array<int, string|null> */
     public array $practiceScores = [];
 
+    public ?string $statusMessage = null;
+
+    protected bool $isHydratingRoster = false;
+
     public function mount(): void
     {
         $this->syncSelectedSchedule();
@@ -114,7 +118,7 @@ class AttendanceIndex extends Component
             return collect();
         }
 
-        $schedule->loadMissing([
+        $schedule->load([
             'classroomSubject.classroom.youths',
             'classroomSubject.subject',
             'classroomSubject.teachers',
@@ -139,11 +143,13 @@ class AttendanceIndex extends Component
                 /** @var Score|null $score */
                 $score = $scoresByUser->get($youth->id);
 
+                $attendanceStatus = $attendance?->status ?? $this->attendanceStatuses[$youth->id] ?? null;
+
                 return [
                     'user' => $youth,
                     'attendance' => $attendance,
                     'score' => $score,
-                    'spirit_score' => $this->spiritScoreForUser($youth->id),
+                    'spirit_score' => $this->spiritScoreForStatus($attendanceStatus),
                     'preview_final_score' => $this->previewFinalScore($youth->id),
                     'preview_result_status' => $this->previewResultStatus($youth->id),
                 ];
@@ -238,6 +244,12 @@ class AttendanceIndex extends Component
             : null;
         $attendanceRecord->save();
 
+        // Update memory immediately after save
+        $this->attendanceStatuses[$userId] = $payload['attendance_status'];
+        $this->attendanceNotes[$userId] = $payload['attendance_note'];
+        $this->theoryScores[$userId] = $payload['theory_score'];
+        $this->practiceScores[$userId] = $payload['practice_score'];
+
         try {
             $scoreRecord = $score ?? new Score([
                 'schedule_id' => $schedule->id,
@@ -254,10 +266,85 @@ class AttendanceIndex extends Component
             return;
         }
 
-        unset($this->selectedSchedule, $this->rosterRows);
         $this->hydrateRosterState();
 
+        $this->statusMessage = __('Đã lưu');
+        session()->now('status', __('Đã lưu'));
+
         Flux::toast(variant: 'success', text: __('Đã lưu điểm danh và điểm số.'));
+
+    }
+
+    public function updatedAttendanceStatuses($value, $key): void
+    {
+        if ($this->isHydratingRoster) {
+            return;
+        }
+
+        $this->saveRecord((int) $key);
+    }
+
+    public function updatedAttendanceNotes($value, $key): void
+    {
+        if ($this->isHydratingRoster) {
+            return;
+        }
+
+        $this->saveRecord((int) $key);
+
+
+    }
+
+    public function updatedTheoryScores($value, $key): void
+    {
+        if ($this->isHydratingRoster) {
+            return;
+        }
+
+        // Validate theory score
+        $validator = Validator::make(
+            ['theory_score' => $this->normalizeOptionalNumeric($value)],
+            ['theory_score' => ['nullable', 'numeric', 'between:0,10']],
+            [],
+            ['theory_score' => __('điểm lý thuyết')]
+        );
+
+        if ($validator->fails()) {
+            $this->addError("theoryScores.{$key}", $validator->errors()->first());
+
+            return;
+        }
+
+        // Clear any existing errors for this field
+        $this->resetErrorBag("theoryScores.{$key}");
+
+        $this->saveRecord((int) $key);
+    }
+
+    public function updatedPracticeScores($value, $key): void
+    {
+        if ($this->isHydratingRoster) {
+            return;
+        }
+
+        // Validate practice score
+        $validator = Validator::make(
+            ['practice_score' => $this->normalizeOptionalNumeric($value)],
+            ['practice_score' => ['nullable', 'numeric', 'between:0,10']],
+            [],
+            ['practice_score' => __('điểm thực hành')]
+        );
+
+        if ($validator->fails()) {
+            $this->addError("practiceScores.{$key}", $validator->errors()->first());
+
+            return;
+        }
+
+        // Clear any existing errors for this field
+        $this->resetErrorBag("practiceScores.{$key}");
+
+        $this->saveRecord((int) $key);
     }
 
     public function render(): View
@@ -273,6 +360,9 @@ class AttendanceIndex extends Component
 
     protected function hydrateRosterState(): void
     {
+        $this->isHydratingRoster = true;
+        $this->statusMessage = null;
+
         $this->attendanceStatuses = [];
         $this->attendanceNotes = [];
         $this->theoryScores = [];
@@ -291,6 +381,8 @@ class AttendanceIndex extends Component
             $this->theoryScores[$user->id] = $score?->theory_score !== null ? (string) $score->theory_score : null;
             $this->practiceScores[$user->id] = $score?->practice_score !== null ? (string) $score->practice_score : null;
         }
+
+        $this->isHydratingRoster = false;
     }
 
     /**
@@ -325,6 +417,11 @@ class AttendanceIndex extends Component
     {
         $status = $this->attendanceStatuses[$userId] ?? null;
 
+        return $this->spiritScoreForStatus($status);
+    }
+
+    protected function spiritScoreForStatus(?string $status): ?float
+    {
         if (blank($status)) {
             return null;
         }
