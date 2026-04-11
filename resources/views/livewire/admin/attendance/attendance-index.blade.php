@@ -1,7 +1,7 @@
 <div>
     <section class="w-full space-y-3">
-        <div class="grid gap-3 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
-            <div class="space-y-3">
+        <div class="grid gap-3 2xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]">
+            <div class="min-w-0 space-y-3">
                 <flux:card class="space-y-4 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900 sm:p-4 lg:rounded-3xl lg:p-5">
                     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         <flux:field>
@@ -194,10 +194,10 @@
                     </div>
 
                     {{-- Desktop table --}}
-                    <div class="hidden lg:block">
-                        <flux:card class="rounded-3xl bg-white dark:bg-zinc-900">
+                    <div class="hidden min-w-0 lg:block">
+                        <flux:card class="min-w-0 overflow-hidden rounded-3xl bg-white dark:bg-zinc-900">
           
-                                <flux:table container:class="max-h-[calc(100vh-390px)] min-w-[980px]">
+                                <flux:table container:class="max-h-[calc(100vh-390px)] overflow-x-auto">
                                     <flux:table.columns sticky class="bg-white dark:bg-zinc-900">
                                         <flux:table.column sticky class="bg-white dark:bg-zinc-900">{{ __('Thiếu nhi') }}</flux:table.column>
                                         <flux:table.column align="center">{{ __('Điểm danh') }}</flux:table.column>
@@ -328,7 +328,7 @@
                 @endif
             </div>
 
-            <div class="space-y-3 lg:space-y-6">
+            <div class="min-w-0 space-y-3 lg:space-y-6">
                 <flux:card class="rounded-2xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-zinc-900 sm:p-4 lg:rounded-3xl lg:p-5">
                     <div class="space-y-3">
                         <flux:heading size="sm">{{ __('Nội quy điểm tinh thần') }}</flux:heading>

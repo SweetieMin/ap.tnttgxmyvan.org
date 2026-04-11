@@ -24,7 +24,7 @@ class ClassroomSubjectUserSeeder extends Seeder
             'MV-NGTP' => ['MV04020712'],
             'MV-PPTN' => ['MV26030101'],
             'MV-TTDD' => ['MV26030101'],
-            'MV-DAUD' => ['MV18061999'],
+            'MV-DAUD' => ['MV26089924'],
             'MV-BHSH' => ['MV21099898'],
             'MV-MATT' => ['MV11100101'],
             'MV-DSTT' => ['MV10121898'],

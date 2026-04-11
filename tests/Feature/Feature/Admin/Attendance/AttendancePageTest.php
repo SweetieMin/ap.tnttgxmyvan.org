@@ -38,7 +38,10 @@ test('attendance page displays schedule roster in the attendance group', functio
     $response->assertOk()
         ->assertSee('Điểm danh và chấm điểm')
         ->assertSee('Thiếu Nhi A')
-        ->assertSee('Nội quy điểm tinh thần');
+        ->assertSee('Nội quy điểm tinh thần')
+        ->assertSee('2xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.9fr)]', false)
+        ->assertSee('min-w-0 overflow-hidden rounded-3xl', false)
+        ->assertSee('overflow-x-auto', false);
 });
 
 test('attendance page stores spirit score from selected attendance status', function () {
