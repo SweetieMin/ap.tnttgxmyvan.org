@@ -75,6 +75,32 @@ class UserSeeder extends Seeder
                 'email' => 'nguyenttvy1110@gmail.com',
                 'password' => 'MV11100101',
                 'role' => 'giáo viên',
+                'permission' => [
+                    'personnel.youth.view',
+                    'personnel.youth.create',
+                    'personnel.youth.update',
+                    'personnel.youth.delete',
+
+                    'management.schedule.view',
+                    'management.schedule.create',
+                    'management.schedule.update',
+                    'management.schedule.delete',
+
+                    'management.subject.view',
+                    'management.subject.create',
+                    'management.subject.update',
+                    'management.subject.delete',
+
+                    'management.classroom.view',
+                    'management.classroom.create',
+                    'management.classroom.update',
+                    'management.classroom.delete',
+
+                    'personnel.teacher.view',
+                    'personnel.teacher.create',
+                    'personnel.teacher.update',
+                    'personnel.teacher.delete',
+                ]
             ],
             [
                 'holy_name' => 'Phero',
@@ -131,6 +157,41 @@ class UserSeeder extends Seeder
                 'role' => 'giáo viên',
             ],
 
+            [
+                'holy_name' => 'Teresa',
+                'name' => 'Nguyễn Thị Ngọc Vân',
+                'birthday' => '1999-08-19',
+                'username' => 'MV19089999',
+                'email' => 'vannguyenthingoc73@gmail.com',
+                'password' => 'MV19089999',
+                'role' => 'giáo viên',
+                'permission' => [
+                    'personnel.youth.view',
+                    'personnel.youth.create',
+                    'personnel.youth.update',
+                    'personnel.youth.delete',
+
+                    'management.schedule.view',
+                    'management.schedule.create',
+                    'management.schedule.update',
+                    'management.schedule.delete',
+
+                    'management.subject.view',
+                    'management.subject.create',
+                    'management.subject.update',
+                    'management.subject.delete',
+
+                    'management.classroom.view',
+                    'management.classroom.create',
+                    'management.classroom.update',
+                    'management.classroom.delete',
+
+                    'personnel.teacher.view',
+                    'personnel.teacher.create',
+                    'personnel.teacher.update',
+                    'personnel.teacher.delete',
+                ]
+            ],
 
             [
                 'holy_name' => 'Maria',
@@ -293,6 +354,7 @@ class UserSeeder extends Seeder
             );
 
             $user->syncRoles([$attributes['role']]);
+            $user->givePermissionTo($attributes['permission']?? null);
         }
     }
 }
