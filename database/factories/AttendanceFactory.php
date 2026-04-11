@@ -22,9 +22,18 @@ class AttendanceFactory extends Factory
         return [
             'schedule_id' => Schedule::factory(),
             'user_id' => User::factory(),
-            'status' => $this->faker->randomElement(['pending', 'present', 'late', 'absent', 'excused']),
+            'status' => $this->faker->randomElement([
+                'on_time',
+                'late_excused',
+                'late_unexcused',
+                'absent_excused',
+                'absent_unexcused',
+                'makeup_completed',
+            ]),
             'note' => $this->faker->optional()->sentence(),
+            'marked_by' => User::factory(),
             'marked_at' => $this->faker->optional()->dateTime(),
+            'makeup_completed_at' => $this->faker->optional()->dateTime(),
         ];
     }
 }

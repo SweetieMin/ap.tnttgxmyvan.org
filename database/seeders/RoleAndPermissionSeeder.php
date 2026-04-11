@@ -18,7 +18,6 @@ class RoleAndPermissionSeeder extends Seeder
 
         $permissionsByRole = [
             'admin' => [
-                'access dashboard',
 
                 'manage roles',
                 'manage permissions',
@@ -48,16 +47,14 @@ class RoleAndPermissionSeeder extends Seeder
                 'management.classroom.update',
                 'management.classroom.delete',
 
+                'attendance.view',
 
             ],
             'giáo viên' => [
-                'access dashboard',
-                'view settings',
-                'manage bible verses',
+                'attendance.view',
             ],
             'thiếu nhi' => [
-                'access dashboard',
-                'view bible verses',
+
             ],
         ];
 

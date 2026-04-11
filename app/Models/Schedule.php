@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\ScheduleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['classroom_subject_id', 'date', 'start_time', 'end_time', 'type', 'status', 'have_record', 'date_end_spirit', 'date_end_practice_theory'])]
 class Schedule extends Model
@@ -37,6 +39,78 @@ class Schedule extends Model
         return $this->belongsTo(ClassroomSubject::class);
     }
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function scores(): HasMany
+    {
+        return $this->hasMany(Score::class);
+    }
+
+    public function isSpiritScoreLocked(?CarbonInterface $at = null): bool
+    {
+        $deadline = $this->spiritScoreDeadlineAt();
+
+        if (! $this->have_record || $deadline === null) {
+            return false;
+        }
+
+        return ($at ?? now())->greaterThan($deadline);
+    }
+
+    public function areTheoryPracticeScoresLocked(?CarbonInterface $at = null): bool
+    {
+        $deadline = $this->theoryPracticeScoreDeadlineAt();
+
+        if (! $this->have_record || $deadline === null) {
+            return false;
+        }
+
+        return ($at ?? now())->greaterThan($deadline);
+    }
+
+    public function spiritScoreDeadlineAt(): ?CarbonInterface
+    {
+        return $this->resolveScoreDeadline($this->date_end_spirit);
+    }
+
+    public function startsAt(): ?CarbonInterface
+    {
+        return $this->resolveScoreDeadline($this->date);
+    }
+
+    public function theoryPracticeScoreDeadlineAt(): ?CarbonInterface
+    {
+        return $this->resolveScoreDeadline($this->date_end_practice_theory);
+    }
+
+    public function isAttendanceOpen(?CarbonInterface $at = null): bool
+    {
+        $startsAt = $this->startsAt();
+
+        if (! $this->have_record || $startsAt === null) {
+            return false;
+        }
+
+        return ($at ?? now())->greaterThanOrEqualTo($startsAt);
+    }
+
+    protected function resolveScoreDeadline(?CarbonInterface $date): ?CarbonInterface
+    {
+        if ($date === null) {
+            return null;
+        }
+
+        if (blank($this->start_time)) {
+            return $date->copy()->endOfDay();
+        }
+
+        [$hour, $minute, $second] = array_pad(explode(':', $this->start_time), 3, '00');
+
+        return $date->copy()->setTime((int) $hour, (int) $minute, (int) $second);
+    }
 
     public function subjectName(): string
     {

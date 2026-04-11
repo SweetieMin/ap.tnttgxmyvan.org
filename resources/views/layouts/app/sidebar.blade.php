@@ -29,29 +29,57 @@
                 wire:navigate>
                 {{ __('Dashboard') }}
             </flux:sidebar.item>
-            <flux:separator :text="__('Management')" class="my-4" />
-            <flux:sidebar.item icon="calendar" :href="route('admin.management.schedule.index')"
-                :current="request()->routeIs('admin.management.schedule.index')" wire:navigate>
-                {{ __('Schedule Management') }}
-            </flux:sidebar.item>
-            <flux:sidebar.item icon="academic-cap" :href="route('admin.management.classroom.index')"
-                :current="request()->routeIs('admin.management.classroom.index')" wire:navigate>
-                {{ __('Classroom Management') }}
-            </flux:sidebar.item>
-            <flux:sidebar.item icon="book-open" :href="route('admin.management.subject.index')"
-                :current="request()->routeIs('admin.management.subject.index')" wire:navigate>
-                {{ __('Subject Management') }}
-            </flux:sidebar.item>
 
-            <flux:separator :text="__('Personnel')" class="my-4" />
-            <flux:sidebar.item icon="book-open" :href="route('admin.personnel.teacher.index')"
-                :current="request()->routeIs('admin.personnel.teacher.index')" wire:navigate>
-                {{ __('Teacher Management') }}
-            </flux:sidebar.item>
-            <flux:sidebar.item icon="user-group" :href="route('admin.personnel.youth.index')"
-                :current="request()->routeIs('admin.personnel.youth.index')" wire:navigate>
-                {{ __('Youth Management') }}
-            </flux:sidebar.item>
+            @canany(['management.schedule.view', 'management.classroom.view', 'management.subject.view'])
+                <flux:separator :text="__('Management')" class="my-4" />
+
+                @can('management.schedule.view')
+                    <flux:sidebar.item icon="calendar" :href="route('admin.management.schedule.index')"
+                        :current="request()->routeIs('admin.management.schedule.index')" wire:navigate>
+                        {{ __('Schedule Management') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @can('management.classroom.view')
+                    <flux:sidebar.item icon="academic-cap" :href="route('admin.management.classroom.index')"
+                        :current="request()->routeIs('admin.management.classroom.index')" wire:navigate>
+                        {{ __('Classroom Management') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @can('management.subject.view')
+                    <flux:sidebar.item icon="book-open" :href="route('admin.management.subject.index')"
+                        :current="request()->routeIs('admin.management.subject.index')" wire:navigate>
+                        {{ __('Subject Management') }}
+                    </flux:sidebar.item>
+                @endcan
+            @endcanany
+
+            @can('attendance.view')
+                <flux:separator :text="__('Attendance')" class="my-4" />
+                <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.attendance.index')"
+                    :current="request()->routeIs('admin.attendance.index')" wire:navigate>
+                    {{ __('Attendance & Scoring') }}
+                </flux:sidebar.item>
+            @endcan
+
+            @canany(['personnel.teacher.view', 'personnel.youth.view'])
+                <flux:separator :text="__('Personnel')" class="my-4" />
+
+                @can('personnel.teacher.view')
+                    <flux:sidebar.item icon="book-open" :href="route('admin.personnel.teacher.index')"
+                        :current="request()->routeIs('admin.personnel.teacher.index')" wire:navigate>
+                        {{ __('Teacher Management') }}
+                    </flux:sidebar.item>
+                @endcan
+
+                @can('personnel.youth.view')
+                    <flux:sidebar.item icon="user-group" :href="route('admin.personnel.youth.index')"
+                        :current="request()->routeIs('admin.personnel.youth.index')" wire:navigate>
+                        {{ __('Youth Management') }}
+                    </flux:sidebar.item>
+                @endcan
+            @endcanany
 
         </flux:sidebar.nav>
 
