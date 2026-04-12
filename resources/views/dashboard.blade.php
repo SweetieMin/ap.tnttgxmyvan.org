@@ -4,11 +4,5 @@
             <livewire:admin.dashboard.dashboard-schedule :day-click-enabled="false" :drag-and-drop-enabled="false" />
         </div>
 
-        @role('thiếu nhi')
-            <div class="relative h-full">
-                <livewire:admin.dashboard.dashboard-score />
-            </div>
-        @endrole
-
     </div>
 </x-layouts::app>

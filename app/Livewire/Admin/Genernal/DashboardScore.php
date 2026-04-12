@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Dashboard;
+namespace App\Livewire\Admin\Genernal;
 
 use App\Models\Score;
 use Illuminate\Contracts\View\View;
@@ -11,6 +11,7 @@ use Livewire\Component;
 
 class DashboardScore extends Component
 {
+
     #[Computed]
     public function scoreRows(): Collection
     {
@@ -26,7 +27,7 @@ class DashboardScore extends Component
             ->whereHas('schedule')
             ->latest('id')
             ->get()
-            ->sortByDesc(fn (Score $score): int => $score->schedule?->date?->getTimestamp() ?? 0)
+            ->sortByDesc(fn(Score $score): int => $score->schedule?->date?->getTimestamp() ?? 0)
             ->values();
     }
 
@@ -34,14 +35,14 @@ class DashboardScore extends Component
     public function subjectSummaries(): Collection
     {
         return $this->scoreRows
-            ->groupBy(fn (Score $score): string => (string) ($score->schedule?->classroom_subject_id ?? 'unknown'))
+            ->groupBy(fn(Score $score): string => (string) ($score->schedule?->classroom_subject_id ?? 'unknown'))
             ->map(function (Collection $scores): array {
                 /** @var Score $firstScore */
                 $firstScore = $scores->first();
 
-                $completedScores = $scores->filter(fn (Score $score): bool => $score->final_score !== null);
+                $completedScores = $scores->filter(fn(Score $score): bool => $score->final_score !== null);
                 $averageScore = $completedScores->isNotEmpty()
-                    ? round($completedScores->avg(fn (Score $score): float => (float) $score->final_score), 2)
+                    ? round($completedScores->avg(fn(Score $score): float => (float) $score->final_score), 2)
                     : null;
                 $lessonCount = $scores->count();
                 $completedCount = $completedScores->count();
@@ -58,7 +59,7 @@ class DashboardScore extends Component
                     'average_score' => $averageScore,
                 ];
             })
-            ->sortByDesc(fn (array $summary): float => $summary['average_score'] ?? -1)
+            ->sortByDesc(fn(array $summary): float => $summary['average_score'] ?? -1)
             ->values();
     }
 
@@ -74,9 +75,9 @@ class DashboardScore extends Component
     #[Computed]
     public function scoreOverview(): array
     {
-        $completedScores = $this->scoreRows->filter(fn (Score $score): bool => $score->final_score !== null);
+        $completedScores = $this->scoreRows->filter(fn(Score $score): bool => $score->final_score !== null);
         $averageScore = $completedScores->isNotEmpty()
-            ? round($completedScores->avg(fn (Score $score): float => (float) $score->final_score), 2)
+            ? round($completedScores->avg(fn(Score $score): float => (float) $score->final_score), 2)
             : null;
         $subjectSummaries = $this->subjectSummaries;
 
@@ -86,14 +87,14 @@ class DashboardScore extends Component
             'completed_lesson_count' => $completedScores->count(),
             'total_lesson_count' => $this->scoreRows->count(),
             'passed_subject_count' => $subjectSummaries
-                ->filter(fn (array $summary): bool => $summary['average_score'] !== null && $summary['average_score'] >= Score::PASSING_SCORE)
+                ->filter(fn(array $summary): bool => $summary['average_score'] !== null && $summary['average_score'] >= Score::PASSING_SCORE)
                 ->count(),
         ];
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('livewire.admin.dashboard.dashboard-score', [
+        return view('livewire.admin.genernal.dashboard-score', [
             'currentUser' => Auth::user(),
         ]);
     }

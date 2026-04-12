@@ -54,6 +54,13 @@
                 {{ __('Dashboard') }}
             </flux:sidebar.item>
 
+            @can('general.score.view')
+                <flux:sidebar.item icon="academic-cap" :href="route('admin.general.dashboard-score')"
+                    :current="request()->routeIs('admin.general.dashboard-score')" wire:navigate>
+                    {{ __('My score') }}
+                </flux:sidebar.item>
+            @endcan
+
             @canany(['management.schedule.view', 'management.classroom.view', 'management.subject.view'])
                 <flux:separator :text="__('Management')" class="my-4" />
 

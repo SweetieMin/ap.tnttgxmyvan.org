@@ -54,7 +54,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'attendance.view',
             ],
             'thiếu nhi' => [
-
+                'general.score.view',
             ],
         ];
 

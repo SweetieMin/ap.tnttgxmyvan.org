@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Admin\Attendance\AttendanceIndex;
+use App\Livewire\Admin\Genernal\DashboardScore;
 use App\Livewire\Admin\Management\Classroom\ClassroomIndex;
 use App\Livewire\Admin\Management\Schedule\ScheduleIndex;
 use App\Livewire\Admin\Management\Subject\SubjectIndex;
@@ -16,6 +17,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 
     Route::prefix('admin')->name('admin.')->group(function () {
+
+        Route::prefix('general')->name('general.')->group(function () {
+            Route::get('dashboard-score', DashboardScore::class)->name('dashboard-score')->middleware('permission:general.score.view');
+        });
+
         Route::prefix('access')->name('access.')->group(function () {});
 
         Route::prefix('management')->name('management.')->group(function () {
