@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Admin\Personnel\Teacher\Action as TeacherAction;
-use App\Livewire\Admin\Personnel\Teacher\TeacherIndex;
 use App\Livewire\Admin\Personnel\Teacher\TeacherList;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -198,5 +197,89 @@ test('teacher form can load user data from main site by account code', function 
         ->assertSet('email', 'nguyenkhachuan1997@gmail.com')
         ->assertSet('username', 'MV19019797')
         ->assertSet('birthday', '1997-01-19')
+        ->assertSet('password', 'MV19019797')
+        ->assertSet('password_confirmation', 'MV19019797')
         ->assertHasNoErrors(['accountCode']);
+});
+
+test('teacher form can save loaded account data and close the modal', function () {
+    $manager = User::factory()->create();
+    $manager->givePermissionTo([
+        'personnel.teacher.view',
+        'personnel.teacher.create',
+    ]);
+
+    $this->actingAs($manager);
+
+    Http::fake([
+        'https://tnttgxmyvan.org/api/users/by-account-code/MV27051219' => Http::response([
+            'success' => true,
+            'data' => [
+                'holy_name' => 'Teresa',
+                'name' => 'Nguyen Thi Thao Van',
+                'email' => '',
+                'username' => 'MV27051219',
+                'birthday' => '27/05/2012',
+            ],
+        ]),
+    ]);
+
+    Livewire::test(TeacherAction::class)
+        ->call('openCreateModal')
+        ->set('accountSource', 'account_code')
+        ->set('accountCode', 'mv27051219')
+        ->call('fetchUserByAccountCode')
+        ->call('saveAndClose')
+        ->assertHasNoErrors()
+        ->assertDispatched('modal-close')
+        ->assertSet('accountCode', '')
+        ->assertSet('name', '')
+        ->assertSet('username', '');
+
+    $createdUser = User::query()->where('username', 'MV27051219')->firstOrFail();
+
+    expect($createdUser->name)->toBe('Nguyen Thi Thao Van');
+    expect($createdUser->email)->toBeNull();
+    expect($createdUser->hasRole('giáo viên'))->toBeTrue();
+});
+
+test('teacher form can save and reset for another entry without closing the modal', function () {
+    $manager = User::factory()->create();
+    $manager->givePermissionTo([
+        'personnel.teacher.view',
+        'personnel.teacher.create',
+    ]);
+
+    $this->actingAs($manager);
+
+    Http::fake([
+        'https://tnttgxmyvan.org/api/users/by-account-code/MV27051220' => Http::response([
+            'success' => true,
+            'data' => [
+                'holy_name' => 'Teresa',
+                'name' => 'Nguyen Thi Thao Van 2',
+                'email' => '',
+                'username' => 'MV27051220',
+                'birthday' => '27/05/2012',
+            ],
+        ]),
+    ]);
+
+    Livewire::test(TeacherAction::class)
+        ->call('openCreateModal')
+        ->set('accountSource', 'account_code')
+        ->set('accountCode', 'mv27051220')
+        ->call('fetchUserByAccountCode')
+        ->call('saveAndCreate')
+        ->assertHasNoErrors()
+        ->assertNotDispatched('modal-close')
+        ->assertSet('accountCode', '')
+        ->assertSet('name', '')
+        ->assertSet('username', '')
+        ->assertSet('accountSource', 'account_code');
+
+    $createdUser = User::query()->where('username', 'MV27051220')->firstOrFail();
+
+    expect($createdUser->name)->toBe('Nguyen Thi Thao Van 2');
+    expect($createdUser->hasRole('giáo viên'))->toBeTrue();
 });

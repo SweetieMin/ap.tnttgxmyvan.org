@@ -42,11 +42,11 @@ class YouthList extends Component
 
     public function openEditModal(int $userId): void
     {
-        $this->dispatch('edit-youth', id: $userId)->to(Action::class);
+        $this->dispatch('edit-youth', $userId);
     }
 
     public function openDeleteModal(int $userId): void
     {
-        $this->dispatch('delete-youth', id: $userId)->to(Action::class);
+        $this->dispatch('delete-youth', $userId);
     }
 }

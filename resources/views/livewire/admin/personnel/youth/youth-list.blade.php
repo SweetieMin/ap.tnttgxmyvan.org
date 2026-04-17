@@ -41,9 +41,9 @@
                         </flux:table.cell>
                         <flux:table.cell align="end">
                             <flux:button size="sm" variant="ghost" icon="pencil-square"
-                                x-on:click="$wire.openEditModal({{ $user->id }})" />
+                                wire:click="openEditModal({{ $user->id }})" />
                             <flux:button size="sm" variant="ghost" icon="trash"
-                                x-on:click="$wire.openDeleteModal({{ $user->id }})"
+                                wire:click="openDeleteModal({{ $user->id }})"
                                 class="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" />
                         </flux:table.cell>
                     </flux:table.row>

@@ -66,7 +66,7 @@ class Action extends Component
 
     public function updatedAccountSource($value): void
     {
-         $this->tab = $value;
+        $this->tab = $value;
     }
 
     #[On('create-youth')]
@@ -80,11 +80,9 @@ class Action extends Component
     }
 
     #[On('edit-youth')]
-    public function openEditModal(mixed $params = null): void
+    public function openEditModal($userId = null): void
     {
         $this->authorize('personnel.youth.update');
-
-        $userId = is_array($params) ? ($params['id'] ?? null) : $params;
 
         if (! is_int($userId) && ! ctype_digit((string) $userId)) {
             return;
@@ -114,11 +112,9 @@ class Action extends Component
     }
 
     #[On('delete-youth')]
-    public function openDeleteModal(mixed $params = null): void
+    public function openDeleteModal($userId = null): void
     {
         $this->authorize('personnel.youth.delete');
-
-        $userId = is_array($params) ? ($params['id'] ?? null) : $params;
 
         if (! is_int($userId) && ! ctype_digit((string) $userId)) {
             return;
@@ -142,7 +138,7 @@ class Action extends Component
             ? $this->updateRules($this->editingUserId)
             : $this->createRules());
 
-        $this->email = blank($this->email) ? null : $this->email;
+        $validated['email'] = blank($validated['email'] ?? null) ? null : $validated['email'];
 
         $roleName = $validated['role'];
 
@@ -161,11 +157,12 @@ class Action extends Component
 
         $user->syncRoles([$roleName]);
 
-        if ($isEditing || !$this->keepModal) {
+        if ($isEditing || ! $this->keepModal) {
             Flux::modal('showFormModal')->close();
-            $this->editingUserId = null;
-            $this->resetForm();
         }
+
+        $this->editingUserId = null;
+        $this->resetForm();
 
         $this->dispatch('youth-updated');
 
@@ -180,6 +177,12 @@ class Action extends Component
         $this->keepModal = true;
         $this->saveUser();
         $this->keepModal = false;
+    }
+
+    public function saveAndClose(): void
+    {
+        $this->keepModal = false;
+        $this->saveUser();
     }
 
     public function deleteUser(): void
@@ -290,6 +293,8 @@ class Action extends Component
         $this->email = (string) ($accountData['email'] ?? '');
         $this->username = Str::upper((string) ($accountData['username'] ?? $accountCode));
         $this->birthday = $this->normalizeBirthdayFromAccountLookup($accountData['birthday'] ?? null);
+        $this->password = $accountCode;
+        $this->password_confirmation = $accountCode;
         $this->resetErrorBag('accountCode');
 
         Flux::toast(variant: 'success', text: __('Đã lấy dữ liệu tài khoản từ trang chính.'));
@@ -353,6 +358,7 @@ class Action extends Component
         $this->accountSource = 'manual';
         $this->accountCode = '';
         $this->role = $this->defaultRole();
+        $this->keepModal = false;
         $this->resetErrorBag();
         $this->resetValidation();
     }

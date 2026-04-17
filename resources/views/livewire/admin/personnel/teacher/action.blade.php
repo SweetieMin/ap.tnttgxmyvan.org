@@ -101,9 +101,18 @@
                         {{ __('Huỷ') }}
                     </flux:button>
 
-                    <flux:button variant="primary" wire:click='saveAndCreate()'>
-                        {{ $editingUserId ? __('Lưu') : __('Lưu và thêm mới') }}
-                    </flux:button>
+                    @if ($editingUserId)
+                        <flux:button variant="primary" wire:click="saveAndClose">
+                            {{ __('Lưu') }}
+                        </flux:button>
+                    @else
+                        <flux:button variant="primary" wire:click="saveAndClose">
+                            {{ __('Lưu') }}
+                        </flux:button>
+                        <flux:button variant="primary" wire:click="saveAndCreate">
+                            {{ __('Lưu và thêm mới') }}
+                        </flux:button>
+                    @endif
                 </div>
             </form>
         </div>

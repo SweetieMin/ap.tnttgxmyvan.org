@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Admin\Personnel\Youth\Action as YouthAction;
-use App\Livewire\Admin\Personnel\Youth\YouthIndex;
 use App\Livewire\Admin\Personnel\Youth\YouthList;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -92,6 +91,33 @@ test('authorized user can create update and delete a youth with role selection',
         ->assertHasNoErrors();
 
     $this->assertModelMissing($createdUser);
+});
+
+test('authorized user can create a youth with a blank email', function () {
+    $manager = User::factory()->create();
+    $manager->givePermissionTo([
+        'personnel.youth.create',
+    ]);
+
+    $this->actingAs($manager);
+
+    Livewire::test(YouthAction::class)
+        ->call('openCreateModal')
+        ->set('holy_name', 'Phaolo')
+        ->set('name', 'Tran Van C')
+        ->set('birthday', '2011-02-03')
+        ->set('username', 'blank.email')
+        ->set('email', '')
+        ->set('password', 'password')
+        ->set('password_confirmation', 'password')
+        ->set('role', 'thiếu nhi')
+        ->call('saveUser')
+        ->assertHasNoErrors();
+
+    $createdUser = User::query()->where('username', 'BLANK.EMAIL')->firstOrFail();
+
+    expect($createdUser->email)->toBeNull();
+    expect($createdUser->hasRole('thiếu nhi'))->toBeTrue();
 });
 
 test('create button is hidden without the create permission', function () {
@@ -198,5 +224,89 @@ test('youth form can load user data from main site by account code', function ()
         ->assertSet('email', 'nguyenkhachuan1997@gmail.com')
         ->assertSet('username', 'MV19019797')
         ->assertSet('birthday', '1997-01-19')
+        ->assertSet('password', 'MV19019797')
+        ->assertSet('password_confirmation', 'MV19019797')
         ->assertHasNoErrors(['accountCode']);
+});
+
+test('youth form can save loaded account data and close the modal', function () {
+    $manager = User::factory()->create();
+    $manager->givePermissionTo([
+        'personnel.youth.view',
+        'personnel.youth.create',
+    ]);
+
+    $this->actingAs($manager);
+
+    Http::fake([
+        'https://tnttgxmyvan.org/api/users/by-account-code/MV27051219' => Http::response([
+            'success' => true,
+            'data' => [
+                'holy_name' => 'Teresa',
+                'name' => 'Nguyen Thi Thao Van',
+                'email' => '',
+                'username' => 'MV27051219',
+                'birthday' => '27/05/2012',
+            ],
+        ]),
+    ]);
+
+    Livewire::test(YouthAction::class)
+        ->call('openCreateModal')
+        ->set('accountSource', 'account_code')
+        ->set('accountCode', 'mv27051219')
+        ->call('fetchUserByAccountCode')
+        ->call('saveAndClose')
+        ->assertHasNoErrors()
+        ->assertDispatched('modal-close')
+        ->assertSet('accountCode', '')
+        ->assertSet('name', '')
+        ->assertSet('username', '');
+
+    $createdUser = User::query()->where('username', 'MV27051219')->firstOrFail();
+
+    expect($createdUser->name)->toBe('Nguyen Thi Thao Van');
+    expect($createdUser->email)->toBeNull();
+    expect($createdUser->hasRole('thiếu nhi'))->toBeTrue();
+});
+
+test('youth form can save and reset for another entry without closing the modal', function () {
+    $manager = User::factory()->create();
+    $manager->givePermissionTo([
+        'personnel.youth.view',
+        'personnel.youth.create',
+    ]);
+
+    $this->actingAs($manager);
+
+    Http::fake([
+        'https://tnttgxmyvan.org/api/users/by-account-code/MV27051220' => Http::response([
+            'success' => true,
+            'data' => [
+                'holy_name' => 'Teresa',
+                'name' => 'Nguyen Thi Thao Van 2',
+                'email' => '',
+                'username' => 'MV27051220',
+                'birthday' => '27/05/2012',
+            ],
+        ]),
+    ]);
+
+    Livewire::test(YouthAction::class)
+        ->call('openCreateModal')
+        ->set('accountSource', 'account_code')
+        ->set('accountCode', 'mv27051220')
+        ->call('fetchUserByAccountCode')
+        ->call('saveAndCreate')
+        ->assertHasNoErrors()
+        ->assertNotDispatched('modal-close')
+        ->assertSet('accountCode', '')
+        ->assertSet('name', '')
+        ->assertSet('username', '')
+        ->assertSet('accountSource', 'manual');
+
+    $createdUser = User::query()->where('username', 'MV27051220')->firstOrFail();
+
+    expect($createdUser->name)->toBe('Nguyen Thi Thao Van 2');
+    expect($createdUser->hasRole('thiếu nhi'))->toBeTrue();
 });

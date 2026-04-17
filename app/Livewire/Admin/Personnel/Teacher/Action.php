@@ -52,6 +52,8 @@ class Action extends Component
 
     public string $role = '';
 
+    public bool $keepModal = false;
+
     public bool $showFormModal = false;
 
     public bool $showDeleteModal = false;
@@ -128,13 +130,15 @@ class Action extends Component
 
     public function saveAndCreate(): void
     {
+        $this->keepModal = true;
         $this->saveUser();
+        $this->keepModal = false;
     }
 
     public function saveAndClose(): void
     {
+        $this->keepModal = false;
         $this->saveUser();
-        Flux::modal('showFormModal')->close();
     }
 
     public function saveUser(): void
@@ -145,12 +149,11 @@ class Action extends Component
 
         $this->username = Str::upper($this->username);
 
-
         $validated = $this->validate($isEditing
             ? $this->updateRules($this->editingUserId)
             : $this->createRules());
 
-        $this->email = blank($this->email) ? null : $this->email;
+        $validated['email'] = blank($validated['email'] ?? null) ? null : $validated['email'];
 
         $roleName = $validated['role'];
 
@@ -168,6 +171,11 @@ class Action extends Component
         }
 
         $user->syncRoles([$roleName]);
+
+        if ($isEditing || ! $this->keepModal) {
+            Flux::modal('showFormModal')->close();
+        }
+
         $this->editingUserId = null;
         $this->resetForm();
 
@@ -228,7 +236,7 @@ class Action extends Component
             $mm = $date->format('m');
             $yy = $date->format('y');
             $rand = str_pad((string) mt_rand(0, 99), 2, '0', STR_PAD_LEFT);
-            $this->username = 'MV' . $dd . $mm . $yy . $rand;
+            $this->username = 'MV'.$dd.$mm.$yy.$rand;
         } catch (\Exception $e) {
             // Ignore invalid dates.
         }
@@ -256,7 +264,7 @@ class Action extends Component
         try {
             $response = Http::acceptJson()
                 ->timeout(10)
-                ->get($this->accountLookupUrl() . '/' . $accountCode);
+                ->get($this->accountLookupUrl().'/'.$accountCode);
         } catch (\Throwable $exception) {
             throw ValidationException::withMessages([
                 'accountCode' => __('Không thể kết nối tới trang chính để lấy dữ liệu tài khoản.'),
@@ -353,6 +361,7 @@ class Action extends Component
         $this->accountSource = $this->tab;
         $this->accountCode = '';
         $this->role = $this->defaultRole();
+        $this->keepModal = false;
         $this->resetErrorBag();
         $this->resetValidation();
     }
