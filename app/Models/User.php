@@ -83,6 +83,16 @@ class User extends Authenticatable
         return $this->hasMany(Score::class);
     }
 
+    public function attendanceMakeups(): HasMany
+    {
+        return $this->hasMany(AttendanceMakeup::class);
+    }
+
+    public function makeupSessions(): HasMany
+    {
+        return $this->hasMany(MakeupSession::class, 'teacher_id');
+    }
+
     public function scoreHistories(): HasMany
     {
         return $this->hasMany(ScoreHistory::class, 'changed_by');

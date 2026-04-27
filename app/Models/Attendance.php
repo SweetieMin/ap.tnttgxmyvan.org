@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['schedule_id', 'user_id', 'status', 'note', 'marked_by', 'marked_at', 'makeup_completed_at'])]
 class Attendance extends Model
@@ -45,6 +46,11 @@ class Attendance extends Model
     public function markedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'marked_by');
+    }
+
+    public function attendanceMakeup(): HasOne
+    {
+        return $this->hasOne(AttendanceMakeup::class, 'original_attendance_id');
     }
 
     public function suggestedSpiritScore(): float

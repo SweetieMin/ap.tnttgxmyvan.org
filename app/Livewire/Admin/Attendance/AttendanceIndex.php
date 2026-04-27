@@ -353,8 +353,18 @@ class AttendanceIndex extends Component
 
     protected function syncSelectedSchedule(): void
     {
-        $this->selectedScheduleId = $this->scheduleOptions->first()?->id;
+        $this->selectedScheduleId = $this->preferredSchedule()?->id;
         $this->hydrateRosterState();
+    }
+
+    protected function preferredSchedule(): ?Schedule
+    {
+        $scheduleOptions = $this->scheduleOptions;
+        $today = now()->toDateString();
+
+        return $scheduleOptions->first(fn (Schedule $schedule): bool => $schedule->date?->toDateString() === $today)
+            ?? $scheduleOptions->first(fn (Schedule $schedule): bool => ($schedule->date?->toDateString() ?? '') > $today)
+            ?? $scheduleOptions->reverse()->first();
     }
 
     protected function hydrateRosterState(): void

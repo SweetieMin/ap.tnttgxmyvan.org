@@ -146,6 +146,62 @@ test('attendance page accepts comma decimals for theory and practice scores', fu
     ]);
 });
 
+test('attendance page selects todays schedule by default', function () {
+    Carbon::setTestNow('2026-04-23 10:00:00');
+
+    $assignment = ClassroomSubject::factory()->create();
+
+    Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-20',
+        'start_time' => '19:00',
+        'have_record' => true,
+    ]);
+
+    $todaySchedule = Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-23',
+        'start_time' => '18:00',
+        'have_record' => true,
+    ]);
+
+    Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-24',
+        'start_time' => '19:00',
+        'have_record' => true,
+    ]);
+
+    $component = Livewire::test(AttendanceIndex::class);
+
+    expect($component->instance()->selectedScheduleId)->toBe($todaySchedule->id);
+});
+
+test('attendance page selects the nearest upcoming schedule when today has no schedule', function () {
+    Carbon::setTestNow('2026-04-23 10:00:00');
+
+    $assignment = ClassroomSubject::factory()->create();
+
+    Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-20',
+        'start_time' => '19:00',
+        'have_record' => true,
+    ]);
+
+    $nearestUpcomingSchedule = Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-24',
+        'start_time' => '17:00',
+        'have_record' => true,
+    ]);
+
+    Schedule::factory()->for($assignment)->create([
+        'date' => '2026-04-30',
+        'start_time' => '19:00',
+        'have_record' => true,
+    ]);
+
+    $component = Livewire::test(AttendanceIndex::class);
+
+    expect($component->instance()->selectedScheduleId)->toBe($nearestUpcomingSchedule->id);
+});
+
 test('my classes filter only shows schedules assigned to the authenticated teacher', function () {
     $teacher = User::factory()->create();
 

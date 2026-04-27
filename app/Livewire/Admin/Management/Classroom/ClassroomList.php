@@ -4,6 +4,8 @@ namespace App\Livewire\Admin\Management\Classroom;
 
 use App\Models\Classroom;
 use App\Models\ClassroomSubject;
+use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -14,7 +16,6 @@ use Livewire\Component;
 
 class ClassroomList extends Component
 {
-
     use AuthorizesRequests;
 
     public ?int $selectedClassroomId = null;
@@ -25,7 +26,7 @@ class ClassroomList extends Component
 
     public function mount(?int $selectedClassroomId = null): void
     {
-        $this->selectedClassroomId = $selectedClassroomId;
+        $this->selectedClassroomId = $selectedClassroomId ?? $this->defaultSelectedClassroomId();
     }
 
     public function updatedSelectedClassroomId(?int $value): void
@@ -36,7 +37,7 @@ class ClassroomList extends Component
     #[On('classroom-data-changed')]
     public function refreshList(?int $selectedClassroomId = null): void
     {
-        $this->selectedClassroomId = $selectedClassroomId;
+        $this->selectedClassroomId = $selectedClassroomId ?? $this->defaultSelectedClassroomId();
 
         unset($this->classrooms, $this->selectedClassroom, $this->classroomAssignments);
     }
@@ -72,7 +73,7 @@ class ClassroomList extends Component
 
     public function openCreateAssignmentModal(): void
     {
-        $this->dispatch('open-create-assignment-modal');
+        $this->dispatch('open-create-assignment-modal', $this->selectedClassroom?->id);
     }
 
     public function openEditAssignmentModal(int $assignmentId): void
@@ -87,7 +88,7 @@ class ClassroomList extends Component
 
     public function openYouthModal(): void
     {
-        $this->dispatch('open-youth-modal');
+        $this->dispatch('open-youth-modal', $this->selectedClassroom?->id);
     }
 
     #[Computed]
@@ -121,13 +122,20 @@ class ClassroomList extends Component
         return $query->first();
     }
 
+    protected function defaultSelectedClassroomId(): ?int
+    {
+        return Classroom::query()
+            ->orderBy('name')
+            ->value('id');
+    }
+
     #[Computed]
     public function classroomAssignments(): Collection
     {
         return $this->selectedClassroom?->classroomSubjects
             ->sortBy(fn (ClassroomSubject $assignment): string => Str::lower($assignment->subject?->name ?? ''))
             ->values()
-            ?? new Collection();
+            ?? new Collection;
     }
 
     #[Computed]
@@ -152,13 +160,13 @@ class ClassroomList extends Component
     #[Computed]
     public function hasAvailableSubjects(): bool
     {
-        return \App\Models\Subject::query()->exists();
+        return Subject::query()->exists();
     }
 
     #[Computed]
     public function hasAvailableTeachers(): bool
     {
-        return \App\Models\User::query()
+        return User::query()
             ->whereHas('roles', fn ($query) => $query->where('name', 'giáo viên'))
             ->exists();
     }
@@ -166,7 +174,7 @@ class ClassroomList extends Component
     #[Computed]
     public function hasAvailableYouths(): bool
     {
-        return \App\Models\User::query()
+        return User::query()
             ->whereHas('roles', fn ($query) => $query->where('name', 'thiếu nhi'))
             ->exists();
     }

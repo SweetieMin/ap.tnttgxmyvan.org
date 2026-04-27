@@ -18,4 +18,9 @@ class Subject extends Model
     {
         return $this->hasMany(ClassroomSubject::class);
     }
+
+    public function makeupSessions(): HasMany
+    {
+        return $this->hasMany(MakeupSession::class);
+    }
 }

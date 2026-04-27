@@ -92,7 +92,19 @@
                     :current="request()->routeIs('admin.attendance.index')" wire:navigate>
                     {{ __('Attendance & Scoring') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="chart-bar-square" :href="route('admin.attendance.score-summary.index')"
+                    :current="request()->routeIs('admin.attendance.score-summary.index')" wire:navigate>
+                    {{ __('Score Summary') }}
+                </flux:sidebar.item>
             @endcan
+
+            @canany(['attendance.view', 'management.schedule.create'])
+                <flux:sidebar.item icon="calendar-days" :href="route('admin.attendance.makeup.index')"
+                    :current="request()->routeIs('admin.attendance.makeup.index')" wire:navigate>
+                    {{ __('Makeup Sessions') }}
+                </flux:sidebar.item>
+            @endcanany
 
             @canany(['personnel.teacher.view', 'personnel.youth.view'])
                 <flux:separator :text="__('Personnel')" class="my-4" />

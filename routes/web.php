@@ -1,8 +1,10 @@
 <?php
 
 use App\Livewire\Admin\Attendance\AttendanceIndex;
+use App\Livewire\Admin\Attendance\ScoreSummaryIndex;
 use App\Livewire\Admin\Genernal\DashboardScore;
 use App\Livewire\Admin\Management\Classroom\ClassroomIndex;
+use App\Livewire\Admin\Management\Makeup\MakeupIndex;
 use App\Livewire\Admin\Management\Schedule\ScheduleIndex;
 use App\Livewire\Admin\Management\Subject\SubjectIndex;
 use App\Livewire\Admin\Personnel\Teacher\TeacherIndex;
@@ -36,6 +38,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('attendance')->name('attendance.')->group(function () {
             Route::get('/', AttendanceIndex::class)
                 ->name('index')->middleware('permission:attendance.view');
+            Route::get('score-summary', ScoreSummaryIndex::class)
+                ->name('score-summary.index')->middleware('permission:attendance.view');
+            Route::get('makeup', MakeupIndex::class)
+                ->name('makeup.index')->middleware('permission:management.schedule.create');
         });
 
         Route::prefix('arrangement')->name('arrangement.')->group(function () {});

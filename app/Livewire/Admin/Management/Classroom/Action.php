@@ -78,7 +78,7 @@ class Action extends Component
 
     public function mount(?int $selectedClassroomId = null): void
     {
-        $this->selectedClassroomId = $selectedClassroomId;
+        $this->selectedClassroomId = $selectedClassroomId ?? $this->defaultSelectedClassroomId();
         $this->resetForm();
         $this->resetAssignmentForm();
     }
@@ -187,8 +187,10 @@ class Action extends Component
     }
 
     #[On('open-create-assignment-modal')]
-    public function openCreateAssignmentModal(): void
+    public function openCreateAssignmentModal(mixed $params = null): void
     {
+        $this->useClassroomFromEvent($params);
+
         if ($this->selectedClassroomId === null) {
             Flux::toast(variant: 'warning', text: __('Hãy tạo lớp học trước khi thêm môn học.'));
 
@@ -264,8 +266,10 @@ class Action extends Component
     }
 
     #[On('open-youth-modal')]
-    public function openYouthModal(): void
+    public function openYouthModal(mixed $params = null): void
     {
+        $this->useClassroomFromEvent($params);
+
         $classroomId = $this->selectedClassroomId;
 
         if ($classroomId === null) {
@@ -689,6 +693,25 @@ class Action extends Component
         }
 
         return (int) $id;
+    }
+
+    protected function useClassroomFromEvent(mixed $params): void
+    {
+        $classroomId = $this->resolveId($params);
+
+        if ($classroomId === null) {
+            return;
+        }
+
+        $this->selectedClassroomId = $classroomId;
+        $this->selectedClassroomName = null;
+    }
+
+    protected function defaultSelectedClassroomId(): ?int
+    {
+        return Classroom::query()
+            ->orderBy('name')
+            ->value('id');
     }
 
     public function render(): View
